@@ -1,0 +1,48 @@
+spring: 
+  config:
+    import: optional:D:\agile_config\application_RDIMS.yml
+#  cache:
+#    ehcache:
+#      config: ehcache.xml 
+#  jackson:
+#    deserialization:
+#      fail-on-unknown-properties: false
+#    serialization:
+#      fail-on-empty-beans: false
+
+#  jpa:
+#    open-in-view: false
+#    show-sql: true
+#    hibernate:
+#      ddl-auto: none
+        
+#  datasource:
+    
+#    url: jdbc:oracle:thin:@192.168.7.72:1521:topprod
+#    url: jdbc:oracle:thin:@172.16.199.56:1521:pecm
+#    driver-class-name: oracle.jdbc.driver.OracleDriver
+#    username: plmuser
+#    password: plmuser
+#    username: pecm
+#    password: wormholesoft
+# Mysql  
+#    url: jdbc:mysql://localhost:3306/cloudplm
+#    driver-class-name: com.mysql.cj.jdbc.Driver
+#    username: root
+#    password: K1e2v0i2n@
+#     h2
+#  h2:
+#    console:
+#      enabled: true
+#    url: jdbc:h2:file:D:/data/testdb
+#    driver-class-name: org.h2.Driver
+#    username: sa
+#    password:
+#    type: org.apache.tomcat.jdbc.pool.DataSource
+#     MySql
+#    database: mysql
+#    database-platform: org.hibernate.dialect.MySQLDialect
+#     Oracle
+#     h2
+#    database: h2
+#    database-platform: org.hibernate.dialect.H2Dialect

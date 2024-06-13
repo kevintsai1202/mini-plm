@@ -1,0 +1,18 @@
+dn: dc=chicony,dc=local
+objectClass: top
+objectClass: domain
+objectclass: extensibleObject
+dc: chicony
+
+dn: ou=people,dc=chicony,dc=local
+objectclass: top
+objectclass: organizationalUnit
+ou: people
+
+dn: cn=10007327,ou=people,dc=chicony,dc=local
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+cn: 10007327
+sn: lu
+userPassword: 10007327

@@ -1,0 +1,6 @@
+<encache>
+    <cache name="myCache"
+	       maxEntriesLocalHeap="1000"
+           timeToLiveSeconds="600">
+    </cache>
+</encache>
