@@ -301,8 +301,8 @@ public class ConfigFormTypeService {
 		return allFields;
 	}
 	
-	public List<ConfigFormField> getFormTypeFieldsEnum(Long formTypeId){
-//		List<ConfigFormFieldEnum> enumFields = new ArrayList<>();
+	public List<ConfigFormFieldEnum> getFormTypeFieldsEnum(Long formTypeId){
+		List<ConfigFormFieldEnum> enumFields = new ArrayList<>();
 //		ConfigFormType formType = configFormTypeRepository.getReferenceById(formTypeId);
 //		List<String> sGroups = configFormFieldRepository.getFormTypeGroups(formTypeId);
 //		Map<String, UserFormFieldResponse> groups = new HashMap();
@@ -312,11 +312,11 @@ public class ConfigFormTypeService {
 //		}
 		
 		List<ConfigFormField> fields = configFormFieldRepository.findByFormTypeAndVisible(formTypeId);
-//		for (ConfigFormField field:fields) {
-//			enumFields.add(new ConfigFormFieldEnum(field));
-//
-//		}
-		return fields;
+		for (ConfigFormField field:fields) {
+			enumFields.add(new ConfigFormFieldEnum(field));
+
+		}
+		return enumFields;
 	}
 	
 	public List<List<UserFormFieldResponse>> getStpesFormTypeAllFields(Long formTypeId){

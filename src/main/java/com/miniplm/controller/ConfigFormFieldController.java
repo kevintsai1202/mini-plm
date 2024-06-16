@@ -1,5 +1,6 @@
 package com.miniplm.controller;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -51,7 +52,7 @@ public class ConfigFormFieldController {
 		return ResponseEntity.ok(new UserFormFieldResponse(cff,false));
 	}
 	
-	@GetMapping("/{id}/switchvisible")
+	@PutMapping("/{id}/switchvisible")
 	public ResponseEntity<UserFormFieldResponse> switchVisible(@PathVariable("id") Long id) {
 		log.info("Switch Visible id: {}", id);
 //		System.out.println("switch Visible id:"+ id);
@@ -59,7 +60,7 @@ public class ConfigFormFieldController {
 		return ResponseEntity.ok(new UserFormFieldResponse(cff,false));
 	}
 	
-	@GetMapping("/{id}/switchrequired")
+	@PutMapping("/{id}/switchrequired")
 	public ResponseEntity<UserFormFieldResponse> switchRequired(@PathVariable("id") Long id) {
 		log.info("Switch Required id: {}", id);
 //		System.out.println("switch Required id:"+ id);
@@ -94,6 +95,22 @@ public class ConfigFormFieldController {
 		}
 		else
 			throw new EntityNotFoundException();
+	}
+	
+	@PutMapping("/order")
+	@Operation(summary = "修改field的順序",
+		       description = "修改field的順序")
+	public ResponseEntity<List<ConfigFormField>> updateFieldsOrder(@RequestBody List<ConfigFormFieldRequest> fieldReqs) {
+		
+		List<ConfigFormField> updateFields = new ArrayList<>(); 
+		
+		fieldReqs.forEach(field->{
+			ConfigFormField dbField = configFormFieldRepository.getReferenceById(field.getCffId());
+			dbField.setOrderBy(field.getOrderBy());
+			updateFields.add(dbField);
+		});
+		
+		return ResponseEntity.ok(configFormFieldRepository.saveAll(updateFields));
 	}
 	
 	

@@ -159,11 +159,11 @@ class MiniPlmApplicationTests {
 //        }
 //	}	
 	
-	@Test
-	@Transactional
-	@Rollback(false)
-	public void test8() {
-		Set<String> fields = authorizationService.getUserModifyFields("kevintsai", 6424L);
-		System.out.println(fields);
-	}
+//	@Test
+//	@Transactional
+//	@Rollback(false)
+//	public void test8() {
+//		Set<String> fields = authorizationService.getUserModifyFields("kevintsai", 6424L);
+//		System.out.println(fields);
+//	}
 }

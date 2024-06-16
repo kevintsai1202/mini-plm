@@ -1,5 +1,6 @@
 package com.miniplm.controller;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -18,6 +19,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.miniplm.entity.ConfigFormField;
 import com.miniplm.entity.ConfigListItem;
 import com.miniplm.entity.ConfigListNode;
 import com.miniplm.repository.ConfigListItemRepository;
@@ -121,19 +123,20 @@ public class ConfigListController {
 		return ResponseEntity.ok(listItemRepository.save(listItem));
 	}
 	
-	@PutMapping(value = "/{nodeId}/listItems/order")
+	@PutMapping(value = "/order")
 	@Operation(summary = "更新下拉選單排序",
                description = "將List Node下的選項排序更新")
-	public ResponseEntity<TableResultResponse> updateListItemsOrder(@PathVariable("nodeId") Long nodeId, @RequestBody @Validated List<ConfigListItem> listItems) {
-		ConfigListNode listNode = listNodeRepository.getReferenceById(nodeId);
-		for (int order = 0; order < listItems.size() ; order++) {
-			ConfigListItem newListItem = listItems.get(order);
-			ConfigListItem oldListItem = listItemRepository.getReferenceById(newListItem.getCliId());
-			oldListItem.setOrderBy(order+1);
-			listItemRepository.save(oldListItem);
-		}
-//		List<ConfigListItem> updatedListItems = listItemRepository.saveAll(listItems);
-		return ResponseEntity.ok(new TableResultResponse(listNode.getListItems()));
+	public ResponseEntity<List<ConfigListItem>> updateListItemsOrder(@RequestBody List<ConfigListItem> listItems) {
+		
+		List<ConfigListItem> updateListItems = new ArrayList<>(); 
+		
+		listItems.forEach(listItem->{
+			ConfigListItem dbListItem = listItemRepository.getReferenceById(listItem.getCliId());
+			dbListItem.setOrderBy(listItem.getOrderBy());
+			updateListItems.add(dbListItem);
+		});
+		
+		return ResponseEntity.ok(listItemRepository.saveAll(updateListItems));
 	}
 	
 	

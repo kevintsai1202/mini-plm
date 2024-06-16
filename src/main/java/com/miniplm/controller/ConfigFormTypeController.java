@@ -93,6 +93,7 @@ public class ConfigFormTypeController {
 	public ResponseEntity<List<UserFormFieldResponse>> getFormVisibleFields(@PathVariable("formTypeId") Long formTypeId) {
 //		ConfigFormType formType = configFormTypeRepository.getReferenceById(id);
 		return ResponseEntity.ok(configFormTypeService.getFormTypeVisibleFields(formTypeId));
+//		return ResponseEntity.ok(configFormTypeService.getFormTypeFieldsEnum(formTypeId));
 //		return ResponseEntity.ok(configFormTypeService.getVisibleFields(formId));
 	}
 	
@@ -103,7 +104,7 @@ public class ConfigFormTypeController {
 //	}
 	
 	@GetMapping("/{id}/visiblefieldsenum")
-	public ResponseEntity<List<ConfigFormField>> getFormTypeVisibleFieldsEnum(@PathVariable("id") Long id) {
+	public ResponseEntity<List<ConfigFormFieldEnum>> getFormTypeVisibleFieldsEnum(@PathVariable("id") Long id) {
 //		ConfigFormType formType = configFormTypeRepository.getReferenceById(id);
 		return ResponseEntity.ok(configFormTypeService.getFormTypeFieldsEnum(id));
 	}

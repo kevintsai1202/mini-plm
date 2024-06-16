@@ -75,7 +75,7 @@ public class Form extends BaseEntity{
     @Column(name = "DESCRIPTION", length = 1000)
 	private String description;
     
-    @ManyToOne(fetch = FetchType.LAZY, cascade = CascadeType.MERGE)
+    @ManyToOne(fetch = FetchType.EAGER, cascade = CascadeType.MERGE)
     @JoinColumn(name = "FORM_TYPE_ID", referencedColumnName = "ID")
     private ConfigFormType configFormType;
         
