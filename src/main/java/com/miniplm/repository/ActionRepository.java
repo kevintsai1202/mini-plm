@@ -15,11 +15,14 @@ import com.miniplm.entity.ConfigStep;
 public interface ActionRepository extends JpaRepository<Action, Long> {
 
 //	@Query(value = "select * from MP_ACTION where type = 'A' and user_id = ?1 and finish_flag != 1", nativeQuery = true)
-	@Query(value = "select * from MP_ACTION A where type = 'A' and user_id = ?1 and finish_flag != 1 and config_step_id IN (SELECT curr_step_id FROM MP_FORM WHERE ID = a.form_id)",nativeQuery = true) 
+	@Query(value = "select * from MP_ACTION A where type IN ('A','R') and user_id = ?1 and finish_flag != 1 and config_step_id IN (SELECT curr_step_id FROM MP_FORM WHERE ID = a.form_id)",nativeQuery = true) 
 	public List<Action> findByApprover(String userId);
 
 	@Query(value = "select count(*) from MP_ACTION where type = 'A' and form_id = ?1 and config_step_id = ?2 and finish_flag != 1" , nativeQuery = true)
 	public int countApproversByFormIdAndStepId(Long formId, Long stepId);
+	
+	@Query(value = "select * from MP_ACTION where type IN ('A','R') and form_id = ?1 and config_step_id = ?2 and user_id = ?3 and finish_flag != 1" , nativeQuery = true)
+	public List<Action> FindMyActionsByFormIdAndStepId(Long formId, Long stepId, String userId);
 	
 	public List<Action> findByTypeAndFormAndConfigStepAndFinishFlag(String type, Form form, ConfigStep step, Boolean finishFlag);
 	public List<Action> findByTypeAndFormAndConfigStepAndUserAndFinishFlag(String type, Form form, ConfigStep step,ZAccount user, Boolean finishFlag);

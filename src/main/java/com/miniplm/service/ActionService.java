@@ -95,6 +95,31 @@ public class ActionService {
 //		initActions(form);
 //	}
 
+	public Boolean needApprve(Long formId, Long stepId) {
+		Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+		if (authentication == null || !authentication.isAuthenticated()) {
+			throw new InternalAuthenticationServiceException("Can't get current user");
+		}
+		ZAccount me = (ZAccount) authentication.getPrincipal();
+		List<Action> myActions =actionRepository.FindMyActionsByFormIdAndStepId(formId, stepId, me.getId());
+		System.out.println(myActions);
+		return (myActions.stream().filter((action) -> action.getType().equals("A")).count() > 0);
+	}
+	
+	@Transactional
+	public Form signOffByFormId(Long formId, SignOffRequest signOffRequest) {
+		Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+		if (authentication == null || !authentication.isAuthenticated()) {
+			throw new InternalAuthenticationServiceException("Can't get current user");
+		}
+		ZAccount me = (ZAccount) authentication.getPrincipal();
+		Form form = formRepository.getReferenceById(formId);
+		List<Action> myActions = actionRepository.FindMyActionsByFormIdAndStepId(formId, form.getCurrStep().getCsId(), me.getId());
+		Action action = myActions.stream().findFirst().orElse(null);
+		return signOff(action.getAId(), signOffRequest);
+	}
+	
+	
 	@Transactional
 	public Form signOff(Long _actionId, SignOffRequest signOffRequest) {
 
@@ -183,6 +208,7 @@ public class ActionService {
 				log.info("Step change to first step: {}", firstStep.getStepName());
 //				System.out.println("Step change to first step:" + firstStep.getStepName());
 				form.setCurrStep(firstStep);
+				returnToPending(form.getFId());
 			}else {
 				if ( rejectStep != firstStep){
 //				int countByApprovers = actionRepository.countApproversByFormIdAndStepId(form.getFId(), rejectStep.getCsId());
@@ -199,6 +225,7 @@ public class ActionService {
 					log.info("Ststus Change to: {}", firstStep.getStepName());
 //					System.out.println("Ststus Change to:" + firstStep.getStepName());
 					form.setCurrStep(firstStep);
+					returnToPending(form.getFId());
 				}
 				//將目前關卡後的Action重建
 				
@@ -335,6 +362,41 @@ public class ActionService {
 			
 		}		
 		return addedApprovers;
+	}
+	
+	@Transactional
+	public ActionResponse returnToPending(Long formId) {
+		ZAccount creator = new ZAccount();
+//		List<ActionResponse> addedApprovers = new ArrayList<>();
+		Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+		if (authentication == null || !authentication.isAuthenticated()) {
+			throw new InternalAuthenticationServiceException("Can't get current user");
+		}
+		creator = (ZAccount) authentication.getPrincipal();
+		
+		Form form = formRepository.getReferenceById(formId);
+		ConfigStep step = form.getCurrStep();
+		
+//		for (String approverId: approverIds) {
+//			ZAccount newApprover = userRepository.getReferenceById(approverId);
+//			List<Action> userCurrActions = actionRepository.findByTypeAndFormAndConfigStepAndUserAndFinishFlag("A", form, step, newApprover, false);
+//			if (userCurrActions.size() == 0) {
+		Action action = Action.builder()
+				.noticeFlag(false)
+				.canNoticeFlag(true)
+				.finishFlag(false)
+				.configStep(step)
+				.form(form)
+				.type("R")
+				.user(creator)
+				.creator(creator)
+				.build();
+		Action savedAction = actionRepository.save(action);
+//				addedApprovers.add(new ActionResponse(savedAction));
+//			}
+			
+//		}		
+		return new ActionResponse(savedAction);
 	}
 	
 	@Transactional

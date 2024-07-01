@@ -57,9 +57,10 @@ public class AuthController {
 			log.info("auth: {}", auth);
 //			System.out.println("auth:"+auth);
 //			token = jwtService.generateToken(auth);
-			String token;
+			TokenResponse tokenRes=null;
 			try {
-				token = authService.authenticate(auth);
+				tokenRes = authService.authenticate(auth);
+				log.info("tokenRes: {}",tokenRes);
 			} catch (UsernameNotFoundException | AuthenticationException | UserPrincipalNotFoundException e) {
 				return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
 			}
@@ -75,7 +76,7 @@ public class AuthController {
 //		}
         
 //        Map<String, Object> responseData = Collections.singletonMap("token", token);
-        return ResponseEntity.ok(new TokenResponse(token));
+        return ResponseEntity.ok(tokenRes);
     }
 	
 	public ResponseEntity<TokenResponse> refreshToken(@RequestHeader("authorization") String authorization){
@@ -83,13 +84,13 @@ public class AuthController {
 			return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
 		}
 		String oldToken = authorization.substring(7);
-		String newToken;
+		TokenResponse newTokenRes;
 		try {
-			newToken = jwtService.refresfToken(oldToken);
+			newTokenRes = jwtService.refresfToken(oldToken);
 		} catch (CredentialNotFoundException e) {
 			return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
 		}
-		return ResponseEntity.ok(new TokenResponse(newToken));
+		return ResponseEntity.ok(newTokenRes);
 	}
 	
 //	@PostMapping("/login")

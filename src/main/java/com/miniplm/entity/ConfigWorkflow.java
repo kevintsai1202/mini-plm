@@ -57,7 +57,7 @@ public class ConfigWorkflow extends BaseEntity{
     @Column(name = "STATUS", nullable = false)
     private Boolean status= false;
     
-    @OneToMany(mappedBy = "cWorkflow", cascade = {CascadeType.MERGE}, fetch = FetchType.LAZY)
+    @OneToMany(mappedBy = "cWorkflow", cascade = {CascadeType.MERGE}, fetch = FetchType.EAGER)
 	@OrderBy("ORDER_BY")
 	@Fetch(FetchMode.SUBSELECT)
     private List<ConfigStep> cSteps;

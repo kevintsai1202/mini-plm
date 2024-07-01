@@ -28,7 +28,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-@Proxy(lazy = true)
+@Proxy(lazy = false)
 @Setter
 @Getter
 @NoArgsConstructor
@@ -73,8 +73,8 @@ public class ConfigListNode extends BaseEntity{
 	@Column(name = "DESCRIPTION", length = 255)
 	private String description;
 	
-	@JsonIgnore
-	@OneToMany( mappedBy = "listNode" , cascade = CascadeType.MERGE, fetch = FetchType.LAZY)
+//	@JsonIgnore
+	@OneToMany( mappedBy = "listNode" , cascade = CascadeType.MERGE, fetch = FetchType.EAGER)
 	@OrderBy("ORDER_BY")
 	@Fetch(FetchMode.SUBSELECT)
 	private List<ConfigListItem> listItems;

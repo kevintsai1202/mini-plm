@@ -26,10 +26,11 @@ import lombok.ToString;
 @NoArgsConstructor
 @AllArgsConstructor
 @Table(name = "MP_SYSTEM_SETTING")
+@SequenceGenerator(name="MP_SYS_SEQUENCE_GENERATOR", sequenceName="MP_SYS_SEQ", initialValue=1000000001, allocationSize=1)
 @Entity
 public class SystemSetting {
 	@Id
-	@GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "MP_SEQUENCE_GENERATOR")
+	@GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "MP_SYS_SEQUENCE_GENERATOR")
 	@Column(name = "ID", unique = true, nullable = false)
 	private Long sId;
 

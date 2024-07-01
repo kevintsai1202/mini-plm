@@ -1,6 +1,5 @@
 package com.miniplm.service;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
@@ -14,8 +13,6 @@ import javax.persistence.criteria.Predicate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import com.miniplm.convert.FormConverter;
-import com.miniplm.convert.FormDataConverter;
 import com.miniplm.entity.ConfigCriteriaItem;
 import com.miniplm.entity.ConfigCriteriaNode;
 import com.miniplm.entity.ConfigStep;

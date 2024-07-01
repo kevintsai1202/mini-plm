@@ -25,6 +25,7 @@ import com.miniplm.repository.TokenRepository;
 import com.miniplm.repository.UserRepository;
 import com.miniplm.repository.ZAccountRepository;
 import com.miniplm.request.AuthRequest;
+import com.miniplm.response.TokenResponse;
 import com.miniplm.utils.JwtUtils;
 
 import lombok.AllArgsConstructor;
@@ -48,7 +49,7 @@ public class AuthService {
 	private final PasswordEncoder passwordEncoder;
 
 	@Transactional
-	public String authenticate(AuthRequest request)
+	public TokenResponse authenticate(AuthRequest request)
 			throws UsernameNotFoundException, AuthenticationException, UserPrincipalNotFoundException {
 		String authenticateMethod = ymlData.getAuthenticateMethod();
 		LdapUser ldapUser = null;
@@ -91,6 +92,6 @@ public class AuthService {
 //				.accessToken(accessToken)
 //				.refreshToken(refreshToken)
 //				.build();
-		return token;
+		return new TokenResponse(token, zuser);
 	}
 }

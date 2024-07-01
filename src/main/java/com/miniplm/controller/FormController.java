@@ -5,6 +5,8 @@ import java.util.List;
 import javax.annotation.Resource;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.annotation.Validated;
@@ -66,25 +68,31 @@ public class FormController {
 	@Autowired
 	private ActionService actionService;
 	
+//	@GetMapping()
+//	@Operation(summary = "取得Form列表",
+//		       description = "返回所有Form的List")
+//	public ResponseEntity<TableResultResponse<FormResponse>> list() {
+//		return ResponseEntity.ok(new TableResultResponse<FormResponse>(formDetailsService.listAllForm()));
+//	}
 	@GetMapping()
 	@Operation(summary = "取得Form列表",
 		       description = "返回所有Form的List")
-	public ResponseEntity<TableResultResponse<FormResponse>> list() {
-		return ResponseEntity.ok(new TableResultResponse<FormResponse>(formDetailsService.listAllForm()));
+	public ResponseEntity<TableResultResponse<Page<FormResponse>>> list(Pageable pageable) {
+		return ResponseEntity.ok(new TableResultResponse(formDetailsService.listAllForm(pageable)));
 	}
 	
 	@GetMapping("/myform")
 	@Operation(summary = "取得我建立的Form列表",
 		       description = "返回所有我建立的Form的List")
-	public ResponseEntity<TableResultResponse<FormResponse>> myFormList() {
-		return ResponseEntity.ok(new TableResultResponse<FormResponse>(formDetailsService.listMyForm()));
+	public ResponseEntity<TableResultResponse<Page<FormResponse>>> myFormList(Pageable pageable) {
+		return ResponseEntity.ok(new TableResultResponse(formDetailsService.listMyForm(pageable)));
 	}
 	
 	@GetMapping("/formtype/{formtypeid}")
 	@Operation(summary = "取得FormType列表",
 		       description = "依FormType返回所有表單清單")
-	public ResponseEntity<TableResultResponse<FormResponse>> listByFormType(@PathVariable("formtypeid") Long formTypeId) {
-		return ResponseEntity.ok(new TableResultResponse<FormResponse>(formDetailsService.listByFormTypeId(formTypeId)));
+	public ResponseEntity<TableResultResponse<Page<FormResponse>>> listByFormType(@PathVariable("formtypeid") Long formTypeId, Pageable pageable) {
+		return ResponseEntity.ok(new TableResultResponse(formDetailsService.listByFormTypeId(formTypeId,pageable)));
 	}
 	
 	@GetMapping("/{id}")

@@ -10,12 +10,12 @@ spring:
 #    serialization:
 #      fail-on-empty-beans: false
 
-#  jpa:
+#  jpa: 
 #    open-in-view: false
 #    show-sql: true
 #    hibernate:
 #      ddl-auto: none
-        
+#      format-sql: true
 #  datasource:
     
 #    url: jdbc:oracle:thin:@192.168.7.72:1521:topprod

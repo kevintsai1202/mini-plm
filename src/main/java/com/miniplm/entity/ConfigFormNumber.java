@@ -44,7 +44,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
 
-@Proxy(lazy = true)
+@Proxy(lazy = false)
 @Setter
 @Getter
 @NoArgsConstructor

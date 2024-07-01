@@ -5,6 +5,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
+import org.springframework.data.domain.Page;
+
 import com.miniplm.entity.ConfigListNode;
 
 import lombok.AllArgsConstructor;
@@ -30,6 +32,14 @@ public class TableResultResponse<T> implements Serializable  {
 		total = data.size();
 		success = true;
 	}
+	
+	public TableResultResponse(Page<T> allData) {
+		
+		data = allData.getContent();
+		total = allData.getTotalElements();
+		success = true;
+	}
+	
 	public TableResultResponse(T oneData) {
 		data = new ArrayList<T>();
 		data.add(oneData);

@@ -53,6 +53,7 @@ public class FormStatusService {
 	@Autowired
 	ActionService actionService;
 	
+	@Transactional
 	public WorkflowResponse getFormWorkflow(Long formId) {
 		WorkflowResponse workflow = new WorkflowResponse();
 		Form form = formRepository.getReferenceById(formId);

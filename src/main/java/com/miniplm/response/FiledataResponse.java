@@ -16,7 +16,8 @@ public class FiledataResponse {
 	private String fileName;
 	private String uuid;
 	private Long size;
-    private String url;  
+    private String url;
+    private String owner;
     
     public FiledataResponse(Filedata filedata) {
     	String homeURL = ServletUriComponentsBuilder.fromCurrentContextPath().toUriString();
@@ -25,5 +26,6 @@ public class FiledataResponse {
     	this.size = filedata.getFileSize();
     	this.url = homeURL+"/api/v1/files/uuid/"+filedata.getStorageUuid();
     	this.uuid = filedata.getStorageUuid();
+    	this.owner = filedata.getOwner().getUsername();
     }
 }

@@ -3,6 +3,7 @@ package com.miniplm.service;
 import java.util.ArrayList;
 import java.util.List;
 
+import javax.persistence.EntityManager;
 import javax.persistence.EntityNotFoundException;
 import javax.transaction.Transactional;
 
@@ -20,15 +21,20 @@ import com.miniplm.response.MenuResponse;
 
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 @Service
 @Data
 @RequiredArgsConstructor
+@Slf4j
 public class MenuService {
 	@Autowired
 	private final MenuRepository menuRepository;
+	
+	@Autowired
+	EntityManager entityManager;
 
-	@Transactional
+//	@Transactional
 	public List<MenuResponse> getAllFolders(){
 		List<Menu> folders = new ArrayList<>();
 		folders = menuRepository.findByMenuType(MenuEnum.Folder);
@@ -36,7 +42,7 @@ public class MenuService {
 		return MenuConverter.INSTANCT.entityToResponse(folders);
 	}
 	
-	@Transactional
+//	@Transactional
 	public List<Menu> getAllMenus(){
 		List<Menu> menus = new ArrayList<>();
 		menus = menuRepository.findByMenuType(MenuEnum.Menu);
@@ -49,7 +55,7 @@ public class MenuService {
 		return savedFolder;
 	}
 	
-	@Transactional
+//	@Transactional
 	public Menu getMenu(Long menuId){
 		Menu menu = null;
 		if (menuId != null)
@@ -64,6 +70,28 @@ public class MenuService {
 	
 	@Transactional
 	public Menu updateMenu(Menu menu){
+//		Menu existingMenu = entityManager.find(Menu.class, menu.getMenuId());
+//		entityManager.remove(existingMenu);
+//		if (existingMenu != null) {
+//		    // 更新现有实体的属性
+//			log.info("更新已存在實體");
+//			existingMenu.setIcon(menu.getIcon());
+//			existingMenu.setKey(menu.getKey());
+//			existingMenu.setLabel(menu.getLabel());
+//			existingMenu.setLink(menu.getLink());
+//			existingMenu.setMenuType(menu.getMenuType());
+//			existingMenu.setOrderBy(menu.getOrderBy());
+//			existingMenu.setParent(menu.getParent());
+//		    // 其他更新操作
+////			entityManager.merge(menuRepository.save(existingMenu));
+//			
+//			return entityManager.merge(menuRepository.save(existingMenu));
+//		} else {
+//		    // 如果不存在，直接合并
+//			log.info("直接儲存");
+//			return menuRepository.save(menu);
+//		}
+		
 		Menu savedMenu = menuRepository.getReferenceById(menu.getMenuId());
 		
 		savedMenu.setIcon(menu.getIcon());

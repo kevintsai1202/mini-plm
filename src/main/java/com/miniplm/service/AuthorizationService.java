@@ -75,6 +75,7 @@ public class AuthorizationService {
 		return privilegeRepository.getReferenceById(pId); 		
 	}
 	
+	@Transactional
 	public Set<UriEntity> getAllUri() {
 		Map<RequestMappingInfo, HandlerMethod> map = uriMapping.getHandlerMethods();
 		Set<UriEntity> set = new HashSet<>();
@@ -107,38 +108,45 @@ public class AuthorizationService {
 		return set;
 	}
 	
+	@Transactional
 	public List<Role> listAllRoles(){
 		return roleRepository.findAll(); 		
 	}
 	
+	@Transactional
 	public List<Permission> listAllPermissions(){
 		return permissionRepository.findAll(); 		
 	}
 	
+	@Transactional
 	public List<Permission> listAllPermissionsByRoleId(Long rId){
 		Role role = roleRepository.getReferenceById(rId);
 		Set<Permission> permissionsSet =role.getPermissions();
 		return new ArrayList<Permission>(permissionsSet);	
 	}
 	
+	@Transactional
 	public List<Privilege> listAllPrivilegesByRoleId(Long rId){
 		Role role = roleRepository.getReferenceById(rId);
 		Set<Privilege> privilegesSet =role.getPrivileges();
 		return new ArrayList<Privilege>(privilegesSet);	
 	}
 	
+	@Transactional
 	public List<Menu> listAllFoldersByRoleId(Long rId){
 		Role role = roleRepository.getReferenceById(rId);
 		Set<Menu> foldersSet =role.getFolders();
 		return new ArrayList<Menu>(foldersSet);	
 	}
 	
+	@Transactional
 	public List<ZAccount> listAllUsersByRoleId(Long rId){
 		Role role = roleRepository.getReferenceById(rId);
-		Set<ZAccount> usersSet =role.getUsers();
+		Set<ZAccount> usersSet = role.getUsers();
 		return new ArrayList<ZAccount>(usersSet);	
 	}
 	
+	@Transactional
 	public List<Privilege> listAllPrivileges(){
 		return privilegeRepository.findAll(); 		
 	}
@@ -347,6 +355,7 @@ public class AuthorizationService {
 		return role.getPrivileges();
 	}
 	
+	@Transactional
 	public Set<String> getUserUrlPatterns(String username) {
 		Set<Permission> allPermissions = new HashSet<>();
 		Set<String> urlPatterns = new HashSet<>();
@@ -361,6 +370,7 @@ public class AuthorizationService {
 		return urlPatterns;
 	}
 
+	@Transactional
 	public Set<Menu> getUserMenus(String username) {
 		Set<Menu> allMenus = new TreeSet<>();
 		ZAccount user = (ZAccount) userService.loadUserByUsername(username);
@@ -374,6 +384,7 @@ public class AuthorizationService {
 		return allMenus;
 	}
 	
+	@Transactional
 	public Set<Privilege> getUserPrivileges(String username) {
 		Set<Privilege> allPrivileges = new HashSet<>();
 		ZAccount user = (ZAccount) userService.loadUserByUsername(username);
@@ -387,6 +398,7 @@ public class AuthorizationService {
 		return allPrivileges;
 	}
 	
+	@Transactional
 	public Set<Privilege> getUserPrivileges(String username, Long formTypeId, PrivilegeEnum privilegeType) {
 		Set<Privilege> allPrivileges = new HashSet<>();
 		ZAccount user = (ZAccount) userService.loadUserByUsername(username);
@@ -404,12 +416,14 @@ public class AuthorizationService {
 		return allPrivileges;
 	}
 	
+	@Transactional
 	public boolean matchMyModifyFields(Long formTypeId, String dataIndex) {
 		String username = SecurityContextHolder.getContext().getAuthentication().getName();
 		Set<String> modifyFields = getUserModifyFields(username, formTypeId);
 		return modifyFields.contains(dataIndex);
 	}
 	
+	@Transactional
 	public Set<String> getUserModifyFields(String username,Long formTypeId) {
 		Set<Privilege> modifyPrivileges = getUserPrivileges(username,formTypeId, PrivilegeEnum.MODIFY);
 		Set<Object> allFieldObjs = new HashSet<>();
@@ -425,6 +439,7 @@ public class AuthorizationService {
 		return allFields;
 	}
 
+	@Transactional
 	public Set<Permission> getUserPermissions(String username) {
 		Set<Permission> allPermissions = new HashSet<>();
 		Set<String> urlPatterns = new HashSet<>();

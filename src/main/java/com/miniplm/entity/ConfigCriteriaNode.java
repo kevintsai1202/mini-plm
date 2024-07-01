@@ -58,7 +58,7 @@ public class ConfigCriteriaNode extends BaseEntity{
 	@Column(name = "CRITERIA_NAME",unique = true, nullable = false, length = 100)
 	private String criteriaName;
 	
-	@OneToMany( mappedBy = "criteriaNode" , cascade = CascadeType.MERGE, fetch = FetchType.LAZY)
+	@OneToMany( mappedBy = "criteriaNode" , cascade = CascadeType.MERGE, fetch = FetchType.EAGER)
 	@OrderBy("ORDER_BY")
 	@Fetch(FetchMode.SUBSELECT)
 	private List<ConfigCriteriaItem> criteriaItems;

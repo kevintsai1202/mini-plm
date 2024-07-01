@@ -25,7 +25,7 @@ public abstract class BaseEntity {
 	
 	@CreationTimestamp
 	@Column
-	@JsonIgnore
+//	@JsonIgnore
 	private Instant createTime;
 	
 	@UpdateTimestamp

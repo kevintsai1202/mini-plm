@@ -1,7 +1,6 @@
 package com.miniplm.entity;
 
 import java.util.LinkedList;
-import java.util.List;
 
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
@@ -13,17 +12,12 @@ import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
-import javax.persistence.ManyToOne;
-import javax.persistence.OneToMany;
 import javax.persistence.OneToOne;
-import javax.persistence.OrderBy;
 import javax.persistence.SequenceGenerator;
 import javax.persistence.Table;
 
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
-import org.hibernate.annotations.Fetch;
-import org.hibernate.annotations.FetchMode;
 import org.hibernate.annotations.SQLDelete;
 import org.hibernate.annotations.Where;
 import org.springframework.data.annotation.CreatedBy;
@@ -31,7 +25,6 @@ import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import com.miniplm.convert.ConverterListJson;
 
-import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -44,7 +37,7 @@ import lombok.Setter;
 @SQLDelete(sql = "UPDATE MP_FILEDATA SET ENABLED = 0 WHERE ID=?")
 @Where(clause = "enabled = 1")
 @SequenceGenerator(name="MP_SEQUENCE_GENERATOR", sequenceName="MP_SEQ", initialValue=1, allocationSize=1)
-//@EntityListeners(AuditingEntityListener.class)
+@EntityListeners(AuditingEntityListener.class)
 public class Filedata extends BaseEntity{
 	@Id
 	@GeneratedValue(strategy=GenerationType.SEQUENCE, generator="MP_SEQUENCE_GENERATOR")
@@ -84,7 +77,7 @@ public class Filedata extends BaseEntity{
 	@Column(name = "FILE_SIZE", nullable = false) //byte
 	private Long fileSize;
 	
-//	@CreatedBy
+	@CreatedBy
     @OneToOne(fetch = FetchType.EAGER, cascade = CascadeType.MERGE)
     @JoinColumn(name = "OWNER_ID", referencedColumnName = "ACCOUNT_ID")
 	private ZAccount owner;

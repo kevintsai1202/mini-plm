@@ -94,7 +94,7 @@ public class ConfigStep extends BaseEntity{
     private int orderBy;
     
     @JsonIgnore
-    @OneToMany(mappedBy = "cStep" , cascade = CascadeType.MERGE, fetch = FetchType.LAZY)
+    @OneToMany(mappedBy = "cStep" , cascade = CascadeType.ALL, fetch = FetchType.EAGER)
 	@OrderBy("ORDER_BY")
 	@Fetch(FetchMode.SUBSELECT)
     private List<ConfigStepCriteria> cStepCriterias;

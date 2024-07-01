@@ -10,6 +10,7 @@ import java.util.stream.Stream;
 
 import javax.annotation.Resource;
 import javax.persistence.EntityNotFoundException;
+import javax.transaction.Transactional;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Sort;
@@ -65,6 +66,7 @@ public class ConfigFormTypeController {
 	ConfigFormTypeService configFormTypeService;
 	
 	@GetMapping
+//	@Transactional
 	public ResponseEntity<TableResultResponse<ConfigFormType>> list() {
 		List<ConfigFormType> formTypies =configFormTypeRepository.findAll(Sort.by("cfId"));
 //		List<ConfigFormType> formTypies =configFormTypeRepository.listAllNormalFormTypies();
@@ -79,8 +81,10 @@ public class ConfigFormTypeController {
 	}
 	
 	@GetMapping("/{id}")
+	@Transactional
 	public ResponseEntity<ConfigFormType> getById(@PathVariable("id") Long id) {
-		return ResponseEntity.ok(configFormTypeRepository.getReferenceById(id));
+		ConfigFormType cFormType= configFormTypeRepository.getReferenceById(id);
+		return ResponseEntity.ok(cFormType);
 	}
 	
 //	@GetMapping("/{id}/fields")

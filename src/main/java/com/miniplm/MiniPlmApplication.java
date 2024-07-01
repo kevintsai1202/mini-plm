@@ -17,7 +17,7 @@ import com.miniplm.service.SystemSettingService;
 @SpringBootApplication
 @EnableScheduling
 //@EnableCaching
-//@EnableJpaAuditing
+@EnableJpaAuditing
 public class MiniPlmApplication implements CommandLineRunner {
 
 	@Autowired

@@ -13,7 +13,7 @@ import com.miniplm.entity.ConfigFormType;
 public interface ConfigFormFieldRepository extends JpaRepository<ConfigFormField, Long> {
 	
 	
-	@Query(value = "select distinct groups.* from MP_CONFIG_FORM_FIELD fields, MP_CONFIG_FORM_FIELD groups where fields.GROUPS = groups.data_index AND fields.ENABLED = 1 and fields.VISIBLE = 1 and fields.GROUPS is not null and fields.FORM_TYPE_ID = :id" ,nativeQuery = true)
+	@Query(value = "select distinct groups.* from MP_CONFIG_FORM_FIELD fields, MP_CONFIG_FORM_FIELD groups where fields.GROUPS = groups.data_index AND fields.ENABLED = 1 and fields.VISIBLE = 1 and fields.GROUPS is not null and fields.FORM_TYPE_ID = :id and groups.FORM_TYPE_ID = :id" ,nativeQuery = true)
 //	@Query(value = "select distinct GROUPS from MP_CONFIG_FORM_FIELD where ENABLED = 1 and VISIBLE = 1 and GROUPS is not null and FORM_TYPE_ID = :id" ,nativeQuery = true)
 	public List<ConfigFormField> getFormTypeGroups(@Param("id") Long id);
 	

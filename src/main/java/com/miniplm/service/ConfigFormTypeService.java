@@ -33,7 +33,10 @@ import com.miniplm.repository.FormRepository;
 import com.miniplm.response.ConfigFormFieldEnum;
 import com.miniplm.response.UserFormFieldResponse;
 
+import lombok.extern.slf4j.Slf4j;
+
 @Service
+@Slf4j
 public class ConfigFormTypeService {
 	@Resource
 	ConfigFormTypeRepository configFormTypeRepository;
@@ -178,6 +181,7 @@ public class ConfigFormTypeService {
 		return newFormType;
 	}
 	
+	@Transactional
 	public List<UserFormFieldResponse> getFormTypeAllFields(Long formTypeId){
 		List<UserFormFieldResponse> allFields = new ArrayList<>();
 		ConfigFormType formType = configFormTypeRepository.getReferenceById(formTypeId);
@@ -185,6 +189,8 @@ public class ConfigFormTypeService {
 		Map<String, UserFormFieldResponse> groups = new HashMap();
 		
 		for (ConfigFormField groupField : groupFields) {
+			log.info("Group field DataIndex: {}", groupField.getDataIndex());
+			log.info("Group field FieldName: {}", groupField.getFieldName());
 			groups.put(groupField.getDataIndex(), new UserFormFieldResponse(groupField.getFieldName(), groupField.getDataIndex()));
 		}
 		
@@ -194,6 +200,7 @@ public class ConfigFormTypeService {
 				if (field.getGroups() == null) {
 					allFields.add(new UserFormFieldResponse(field, false));
 				}else {
+					log.info("Field's Group DataIndex: {}", field.getGroups());
 					UserFormFieldResponse groupField = groups.get(field.getGroups());
 					groupField.getColumns().add(new UserFormFieldResponse(field,false));
 					if (!allFields.contains(groupField)) {
@@ -205,6 +212,7 @@ public class ConfigFormTypeService {
 		return allFields;
 	}
 	
+	@Transactional
 	public List<UserFormFieldResponse> getVisibleFields(Long formId){
 		List<UserFormFieldResponse> allFields = new ArrayList<>();
 		Form form = formRepository.getReferenceById(formId);
@@ -220,7 +228,7 @@ public class ConfigFormTypeService {
 		return allFields;
 	}
 	
-//	@Transactional
+	@Transactional
 	public List<UserFormFieldResponse> getFormTypeVisibleFields(Long formTypeId){
 		List<UserFormFieldResponse> allFields = new ArrayList<>();
 //		ConfigFormType formType = configFormTypeRepository.getReferenceById(formTypeId);
@@ -228,6 +236,8 @@ public class ConfigFormTypeService {
 		Map<String, UserFormFieldResponse> groups = new HashMap();
 		
 		for (ConfigFormField groupField : groupFields) {
+//			log.info("Group field DataIndex: {}", groupField.getDataIndex());
+			log.info("Group field FieldName: {}", groupField.getFieldName());
 			groups.put(groupField.getDataIndex() , new UserFormFieldResponse(groupField.getFieldName(), groupField.getDataIndex()));
 		}
 		//TODO 改直接抓ConfigFormFieldRepository
@@ -239,6 +249,7 @@ public class ConfigFormTypeService {
 				if (field.getGroups() == null) {
 					allFields.add(new UserFormFieldResponse(formTypeId, field, false, canModify));
 				}else {
+					log.info("Field's Group DataIndex: {}", field.getGroups());
 					UserFormFieldResponse groupField = groups.get(field.getGroups());
 					groupField.getColumns().add(new UserFormFieldResponse(formTypeId, field, false, canModify));
 					if (!allFields.contains(groupField)) {
@@ -250,7 +261,7 @@ public class ConfigFormTypeService {
 		return allFields;
 	}
 	
-	
+	@Transactional
 	public List<UserFormFieldResponse> getStepRequiredFields(Long formId){
 		Form form = formRepository.getReferenceById(formId);
 		ConfigStep currStep = form.getCurrStep();
@@ -301,6 +312,7 @@ public class ConfigFormTypeService {
 		return allFields;
 	}
 	
+	@Transactional
 	public List<ConfigFormFieldEnum> getFormTypeFieldsEnum(Long formTypeId){
 		List<ConfigFormFieldEnum> enumFields = new ArrayList<>();
 //		ConfigFormType formType = configFormTypeRepository.getReferenceById(formTypeId);
@@ -319,6 +331,7 @@ public class ConfigFormTypeService {
 		return enumFields;
 	}
 	
+	@Transactional
 	public List<List<UserFormFieldResponse>> getStpesFormTypeAllFields(Long formTypeId){
 		List stepsFields = new ArrayList();
 		List<UserFormFieldResponse> allFields = new ArrayList<>();
@@ -336,6 +349,7 @@ public class ConfigFormTypeService {
 		return stepsFields;
 	}
 	
+	@Transactional
 	public List<ConfigStep> getAllStep(Long formTypeId){
 		List configSteps = new ArrayList();
 		Optional<ConfigFormType> op =  configFormTypeRepository.findById(formTypeId);
@@ -345,6 +359,7 @@ public class ConfigFormTypeService {
 		return configSteps;
 	}
 	
+	@Transactional
 	public List<ConfigFormNumber> getAllAutoNumber(Long formTypeId){
 		ConfigFormType cft =  configFormTypeRepository.getReferenceById(formTypeId);
 		return cft.getConfigFormNumbers();

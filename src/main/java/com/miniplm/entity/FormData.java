@@ -33,7 +33,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
 
-@Proxy(lazy = false)
+@Proxy(lazy = true)
 @Setter
 @Getter
 @NoArgsConstructor

@@ -5,6 +5,7 @@ import java.util.List;
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.EntityListeners;
 import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
@@ -24,13 +25,16 @@ import org.hibernate.annotations.Proxy;
 import org.hibernate.annotations.SQLDelete;
 import org.hibernate.annotations.Where;
 import org.springframework.data.annotation.CreatedBy;
+import org.springframework.data.jpa.domain.support.AuditingEntityListener;
+
+import com.fasterxml.jackson.annotation.JsonIgnore;
 
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
 
-@Proxy(lazy = false)
+@Proxy(lazy = true)
 @Setter
 @Getter
 @NoArgsConstructor
@@ -40,7 +44,7 @@ import lombok.ToString;
 @SQLDelete(sql = "UPDATE MP_FORM SET enabled=0 WHERE id=?")
 @Where(clause = "enabled = true")
 @SequenceGenerator(name="MP_SEQUENCE_GENERATOR", sequenceName="MP_SEQ", initialValue=1, allocationSize=1)
-//@EntityListeners(AuditingEntityListener.class)
+@EntityListeners(AuditingEntityListener.class)
 public class Form extends BaseEntity{
 
 	@Id
@@ -83,14 +87,15 @@ public class Form extends BaseEntity{
 //    @Fetch(FetchMode.SUBSELECT)
 //    private List<FormExtraData> formDatas;
     
-    @OneToOne(fetch = FetchType.EAGER)
+    @OneToOne(fetch = FetchType.LAZY)
     private FormData formData;
     
-    @OneToOne(fetch = FetchType.LAZY)
+    @OneToOne(fetch = FetchType.EAGER)
     private ConfigWorkflow cWorkflow;
     
     @OneToMany(mappedBy = "form" , cascade = CascadeType.MERGE, fetch = FetchType.LAZY)
     @Fetch(FetchMode.SUBSELECT)
+    @JsonIgnore
     private List<Action> actions;
     
     

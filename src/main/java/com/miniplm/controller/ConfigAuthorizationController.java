@@ -1,12 +1,8 @@
 package com.miniplm.controller;
 
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
 import java.util.Set;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.CrossOrigin;
@@ -33,12 +29,9 @@ import com.miniplm.repository.RoleRepository;
 import com.miniplm.request.PermissionRequest;
 import com.miniplm.request.PrivilegeRequest;
 import com.miniplm.request.RoleRequest;
-import com.miniplm.response.MessageResponse;
 import com.miniplm.response.TableResultResponse;
 import com.miniplm.service.AuthorizationService;
-import com.miniplm.service.UserService;
 
-import ch.qos.logback.core.status.Status;
 import io.swagger.v3.oas.annotations.tags.Tag;
 
 @Tag(name = "授權" , description = "維護授權的API")
@@ -193,6 +186,12 @@ public class ConfigAuthorizationController {
 	public ResponseEntity<Set<String>> getMyPermission(){
 		String username = SecurityContextHolder.getContext().getAuthentication().getName();
 		return ResponseEntity.ok(authorizationService.getUserUrlPatterns(username));
+	}
+	
+	@GetMapping("/me/privileges")
+	public ResponseEntity<Set<Privilege>> getMyPrivilege(){
+		String username = SecurityContextHolder.getContext().getAuthentication().getName();
+		return ResponseEntity.ok(authorizationService.getUserPrivileges(username));
 	}
 	
 	@GetMapping("/me/menus")

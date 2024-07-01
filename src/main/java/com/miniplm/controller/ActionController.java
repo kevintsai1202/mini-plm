@@ -43,9 +43,17 @@ public class ActionController {
 	@Operation(summary = "取得自己的Actions列表",
 		       description = "返回自己所有actions清單")
 	public ResponseEntity<TableResultResponse<ActionResponse>> myActions() {
-		String username = SecurityContextHolder.getContext().getAuthentication().getName();
-		ZAccount user = (ZAccount) userService.loadUserByUsername(username);
+//		String username = SecurityContextHolder.getContext().getAuthentication().getName();
+//		ZAccount user = (ZAccount) userService.loadUserByUsername(username);
+		ZAccount user = (ZAccount) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
 		return ResponseEntity.ok(new TableResultResponse<ActionResponse>(actionService.listMyActions(user.getId())));
+	}
+	
+	@GetMapping("/me/forms/{formId}/steps/{stepId}")
+	@Operation(summary = "確認表單是否需要用戶簽核",
+		       description = "確認表單是否需要用戶簽核，返回boolean")
+	public ResponseEntity<Boolean> needApprove(@PathVariable("formId") Long formId, @PathVariable("stepId") Long stepId) {
+		return ResponseEntity.ok(actionService.needApprve(formId, stepId));
 	}
 	
 	@GetMapping("/user/{id}")
@@ -62,23 +70,31 @@ public class ActionController {
 		return ResponseEntity.ok(new TableResultResponse<ActionResponse>(actionService.listActionsByFormId(formId)));
 	}
 	
-	@PostMapping("/{id}/signoff")
+	@PostMapping("/{actionId}/signoff")
 	@Operation(summary = "簽核",
 		       description = "簽核")
-	public ResponseEntity<Form> signoff(@PathVariable("id") Long actionId, @Valid @RequestBody SignOffRequest signOffRequest) {
+	public ResponseEntity<Form> signoff(@PathVariable("actionId") Long actionId, @Valid @RequestBody SignOffRequest signOffRequest) {
 			return ResponseEntity.ok(actionService.signOff(actionId, signOffRequest));
 	}
 	
-	@GetMapping("/forms/{formId}/checkunfinishactions")
-	@Operation(summary = "確認表單是否有未完成Actions",
-		       description = "確認表單是否有未完成Actions")
-	public ResponseEntity checkUnfinishActions(@PathVariable("formId") Long formId) {
-		if (actionService.hasUnfinishActions(formId)) {
-			return ResponseEntity.ok(new MessageResponse("Yes"));
-		}else {
-			return ResponseEntity.ok(new MessageResponse("No"));
-		}
+	@PostMapping("/forms/{formId}/signoff")
+	@Operation(summary = "簽核",
+		       description = "簽核")
+	public ResponseEntity<Form> signOffByFormId(@PathVariable("formId") Long formId, @Valid @RequestBody SignOffRequest signOffRequest) {
+			
+		return ResponseEntity.ok(actionService.signOffByFormId(formId, signOffRequest));
 	}
+	
+//	@GetMapping("/forms/{formId}/checkunfinishactions")
+//	@Operation(summary = "確認表單是否有未完成Actions",
+//		       description = "確認表單是否有未完成Actions")
+//	public ResponseEntity checkUnfinishActions(@PathVariable("formId") Long formId) {
+//		if (actionService.hasUnfinishActions(formId)) {
+//			return ResponseEntity.ok(new MessageResponse("Yes"));
+//		}else {
+//			return ResponseEntity.ok(new MessageResponse("No"));
+//		}
+//	}
 	
 //	@GetMapping("/forms/{formId}/initactions")
 //	@Operation(summary = "初始化表單actions",

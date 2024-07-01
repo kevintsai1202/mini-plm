@@ -80,7 +80,7 @@ public class JwtService {
 	}
 	
 	@Transactional
-	public String refresfToken(String token) throws CredentialNotFoundException {
+	public TokenResponse refresfToken(String token) throws CredentialNotFoundException {
 		Map claims = jwtUtils.parseToken(token);
 		String username = (String) claims.get("username");
 		ZAccount user = (ZAccount) userService.loadUserByUsername(username);
@@ -106,7 +106,7 @@ public class JwtService {
 				.revoked(false)
 				.build());
 		
-		return refreshToken;
+		return new TokenResponse(refreshToken,user);
 	}
 
 //	public String generateToken1(ZAccount zuser) {

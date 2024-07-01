@@ -3,6 +3,7 @@ package com.miniplm.controller;
 import java.util.List;
 
 import javax.annotation.Resource;
+import javax.transaction.Transactional;
 
 import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
@@ -45,6 +46,7 @@ public class ConfigStepController {
 	@Resource
 	private ConfigStepRepository configStepRepository;
 	
+	@Transactional
 	@GetMapping("/{id}")
 	@Operation(summary = "取得關卡內容",
                description = "依id返回關卡設定內容")
@@ -52,6 +54,7 @@ public class ConfigStepController {
 		return ResponseEntity.ok(configStepRepository.getReferenceById(id));
 	}
 	
+	@Transactional
 	@DeleteMapping("/{id}")
 	@Operation(summary = "刪除關卡",
                description = "刪除關卡")
@@ -66,6 +69,7 @@ public class ConfigStepController {
 		
 	}
 	
+	@Transactional
 	@PutMapping("/{id}")
 	@Operation(summary = "依id更新關卡",
 		       description = "透過id更新關卡資料")
