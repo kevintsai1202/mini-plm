@@ -46,7 +46,7 @@ import lombok.extern.slf4j.Slf4j;
 public class WebSecurityConfig {
 
 //	@Autowired
-	private final UserService userService;
+//	private final UserService userService;
 //	@Autowired
 	private final MpUnauthorizedHandler unauthorizedHandler;
 //	@Autowired
@@ -56,7 +56,7 @@ public class WebSecurityConfig {
 //	@Autowired
 	private final LogoutHandler logoutHandler;
 //	@Autowired
-    private final DataSource dataSource; // 数据源
+//    private final DataSource dataSource; // 数据源
     
     private final JwtAuthenticationFilter jwtAuthenticationTokenFilter;
 	
@@ -108,7 +108,8 @@ public class WebSecurityConfig {
 	@Bean
 	protected SecurityFilterChain filterChain(HttpSecurity httpSecurity) throws Exception {
 		httpSecurity
-				.cors(withDefaults()).csrf(csrf -> csrf.disable())
+				.cors(withDefaults())
+				.csrf(csrf -> csrf.disable())
 				.formLogin(login -> login.loginPage("/login")
 										 .failureHandler(new MpAuthenticationFailureHandler())
 										 .permitAll()
@@ -138,7 +139,8 @@ public class WebSecurityConfig {
 						.antMatchers("/api/v1/config/systemsetting/routes").permitAll()					
 						.antMatchers(HttpMethod.POST, "/api/v1/auth/**").permitAll()
 						.antMatchers(HttpMethod.POST, "/api/v1/users/**").authenticated()
-						.antMatchers(HttpMethod.PATCH, "/api/v1/forms/formnumber/**").permitAll()
+						.antMatchers(HttpMethod.POST, "/api/v1/seatch/**").permitAll()
+						.antMatchers(HttpMethod.PUT, "/api/v1/forms/formnumber/**").permitAll()	//外部修改呼叫
 //						.antMatchers(HttpMethod.POST, "/api/v1/admin/config/authorization/**").hasAnyRole("ADMIN")
 //								.antMatchers("/api/v1/admin/**").permitAll()
 //						.antMatchers("/api/v1/forms/**").permitAll()

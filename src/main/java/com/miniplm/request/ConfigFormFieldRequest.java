@@ -1,7 +1,5 @@
 package com.miniplm.request;
 
-import javax.persistence.Column;
-
 import lombok.Data;
 
 @Data

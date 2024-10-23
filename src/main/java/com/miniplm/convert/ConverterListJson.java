@@ -1,21 +1,31 @@
 package com.miniplm.convert;
 
-import java.util.LinkedList;
 import java.util.List;
 
 import javax.persistence.AttributeConverter;
 
 import com.miniplm.utils.JsonUtils;
 
-public class ConverterListJson implements AttributeConverter<LinkedList<Object>, String> {
+import lombok.extern.slf4j.Slf4j;
+
+@Slf4j
+public class ConverterListJson implements AttributeConverter<List<String>, String> {
 
 	@Override
-	public String convertToDatabaseColumn(LinkedList<Object> attribute) {
+	public String convertToDatabaseColumn(List<String> attribute) {
+//		log.info("From UI:{}", attribute);
+		if (attribute == null || attribute.isEmpty()) {
+            return "";
+        }
 		return JsonUtils.toJson(attribute);
 	}
 
 	@Override
-	public LinkedList<Object> convertToEntityAttribute(String dbData) {
-		return JsonUtils.toObject(dbData, LinkedList.class);
+	public List<String> convertToEntityAttribute(String dbData) {
+//		log.info("From DB:{}", dbData);
+		if (dbData == null || dbData.isEmpty()) {
+            return null;
+        }		
+		return JsonUtils.toObject(dbData, List.class);
 	}
 }

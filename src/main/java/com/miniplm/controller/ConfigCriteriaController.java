@@ -6,6 +6,7 @@ import java.util.Optional;
 import javax.annotation.Resource;
 import javax.persistence.EntityNotFoundException;
 
+import org.springframework.beans.BeanUtils;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.CrossOrigin;
@@ -16,20 +17,15 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.miniplm.entity.ConfigCriteriaItem;
 import com.miniplm.entity.ConfigCriteriaNode;
 import com.miniplm.entity.ConfigFormType;
-import com.miniplm.entity.ConfigListItem;
-import com.miniplm.entity.ConfigListNode;
 import com.miniplm.entity.LogicalEnum;
 import com.miniplm.repository.ConfigCriteriaItemRepository;
 import com.miniplm.repository.ConfigCriteriaNodeRepository;
 import com.miniplm.repository.ConfigFormTypeRepository;
-import com.miniplm.repository.ConfigListItemRepository;
-import com.miniplm.repository.ConfigListNodeRepository;
 import com.miniplm.request.ConfigCriteriaNodeRequest;
 import com.miniplm.response.TableResultResponse;
 
@@ -82,6 +78,34 @@ public class ConfigCriteriaController {
 				.configFormType(formType)
 				.build();
 		return ResponseEntity.ok(new TableResultResponse(criteriaNodeRepository.save(criteriaNode)));
+	}
+	
+	@PostMapping("/{sourceId}/saveas")
+	@Operation(summary = "複製Criteria",
+               description = "複製Criteria")
+	public ResponseEntity<TableResultResponse> saveAs(@PathVariable Long sourceId, @RequestBody @Validated ConfigCriteriaNodeRequest criteriaNodeRequest){
+//		List<ConfigCriteriaItem> targetCriteriaItems = new ArrayList<>();
+		ConfigCriteriaNode source = criteriaNodeRepository.getReferenceById(sourceId);
+		List<ConfigCriteriaItem> sourceCriteriaItems = source.getCriteriaItems();
+		
+		ConfigFormType formType = configFormTypeRepository.getReferenceById(criteriaNodeRequest.getCfId());
+		
+		ConfigCriteriaNode criteriaNode = ConfigCriteriaNode.builder()
+				.criteriaName(criteriaNodeRequest.getCriteriaName())
+				.configFormType(formType)
+				.build();
+		
+		ConfigCriteriaNode savedCriteriaNode = criteriaNodeRepository.save(criteriaNode);
+		
+		sourceCriteriaItems.forEach((ConfigCriteriaItem cItem)->{
+			ConfigCriteriaItem target = new ConfigCriteriaItem();
+			BeanUtils.copyProperties(cItem, target);
+			target.setCiId(null);
+			target.setCriteriaNode(savedCriteriaNode);
+			criteriaItemRepository.save(target);
+		});
+		
+		return ResponseEntity.ok(new TableResultResponse(savedCriteriaNode));
 	}
 	
 	@GetMapping(value = "/{id}")
@@ -144,7 +168,7 @@ public class ConfigCriteriaController {
 		criteriaItem.setField(_criteriaItem.getField());
 		criteriaItem.setLogical(_criteriaItem.getLogical());
 		criteriaItem.setOperator(_criteriaItem.getOperator());
-		criteriaItem.setOrderBy(_criteriaItem.getOrderBy());
+//		criteriaItem.setOrderBy(_criteriaItem.getOrderBy());
 //		List<ConfigListItem> updatedListItems = listItemRepository.saveAll(listItems);
 		return ResponseEntity.ok(criteriaItemRepository.save(criteriaItem));
 	}
@@ -168,7 +192,7 @@ public class ConfigCriteriaController {
 		for (int order = 0; order < criteriaItems.size() ; order++) {
 			ConfigCriteriaItem newCriteriaItem = criteriaItems.get(order);
 			ConfigCriteriaItem dbCriteriaItem = criteriaItemRepository.getReferenceById(newCriteriaItem.getCiId());
-			dbCriteriaItem.setOrderBy(order+1);
+//			dbCriteriaItem.setOrderBy(order+1);
 			criteriaItemRepository.save(dbCriteriaItem);
 		}
 //		List<ConfigListItem> updatedListItems = listItemRepository.saveAll(listItems);

@@ -7,9 +7,12 @@ import java.util.List;
 import java.util.Set;
 import java.util.TreeSet;
 
+import javax.persistence.CascadeType;
 import javax.persistence.Column;
+import javax.persistence.ConstraintMode;
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
+import javax.persistence.ForeignKey;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
@@ -17,6 +20,7 @@ import javax.persistence.JoinColumn;
 import javax.persistence.JoinTable;
 import javax.persistence.ManyToMany;
 import javax.persistence.OneToMany;
+import javax.persistence.OneToOne;
 import javax.persistence.Table;
 
 import org.hibernate.annotations.Fetch;
@@ -40,7 +44,7 @@ import lombok.ToString;
 @Getter
 @NoArgsConstructor
 @Entity
-@ToString(exclude = {"tokens"})
+@ToString(exclude = {"tokens", "historys"})
 @Table(name = "Z_ACCOUNT")
 public class ZAccount implements UserDetails {
 @Id
@@ -71,6 +75,10 @@ public class ZAccount implements UserDetails {
   
   @Column(name = "EMAIL", length = 256)
   private String email;
+  
+  @OneToOne
+  @JoinColumn(name = "TA_ID", referencedColumnName = "ACCOUNT_ID", foreignKey = @ForeignKey(name = "none", value = ConstraintMode.NO_CONSTRAINT))
+  private ZAccount ta;
 
   @Column(name = "DEPT_ID", length = 30)
   private String deptId;
@@ -102,6 +110,11 @@ public class ZAccount implements UserDetails {
   @JsonIgnore
   @OneToMany(mappedBy = "user")
   private Set<Token> tokens;
+  
+//  @OneToMany(mappedBy = "operator" , cascade = CascadeType.MERGE, fetch = FetchType.LAZY)
+//  @Fetch(FetchMode.SUBSELECT)
+//  @JsonIgnore
+//  private List<FormHistory> historys;
 
 @Override
 public Collection<? extends GrantedAuthority> getAuthorities() {

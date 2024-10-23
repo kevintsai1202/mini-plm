@@ -15,15 +15,21 @@ import javax.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.UrlResource;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.util.FileSystemUtils;
 import org.springframework.web.multipart.MultipartFile;
 
+import com.miniplm.entity.ChangeTypeEnum;
 import com.miniplm.entity.Filedata;
 import com.miniplm.entity.Form;
+import com.miniplm.entity.FormHistory;
 import com.miniplm.entity.YmlData;
+import com.miniplm.entity.ZAccount;
 import com.miniplm.exception.BusinessException;
 import com.miniplm.repository.FiledataRepository;
+import com.miniplm.repository.FormHistoryRepository;
 import com.miniplm.repository.FormRepository;
 import com.miniplm.response.FiledataResponse;
 import com.miniplm.utils.UUIDTools;
@@ -44,6 +50,9 @@ public class FileStorageService {
 	
 	@Autowired
 	private FiledataRepository filedataRepository;
+	
+	@Autowired
+	private FormHistoryRepository formHistoryRepository;
 	
 	@Autowired
 	private FormRepository formRepository;
@@ -138,6 +147,22 @@ public class FileStorageService {
 			Filedata savedFiledata = filedataRepository.save(fileData);
 			log.info("File Name: {}" ,savedFiledata.getFileName());
 //			System.out.println("File Name:"+savedFiledata.getFileName());
+			
+			Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+	    	ZAccount user = null;
+			if (authentication != null && authentication.isAuthenticated()) {
+				user = (ZAccount) authentication.getPrincipal();
+			}
+			
+			FormHistory history = FormHistory.builder()
+	    			.detail("Upload file: "+ savedFiledata.getFileName())
+	    			.form(form)
+	    			.accountName(user.getUsername())
+	    			.stepName(form.getCurrStep().getStepName())
+	    			.type(ChangeTypeEnum.UploadFiles)
+	    			.build();
+	    	formHistoryRepository.save(history);
+			
 			return new FiledataResponse(savedFiledata);
 		} catch (IOException e) {
 			throw new RuntimeException("Could not store the file. Error:" + e.getMessage());
@@ -174,6 +199,22 @@ public class FileStorageService {
 			Filedata savedFiledata = filedataRepository.save(fileData);
 			log.info("File Name: {}", savedFiledata.getFileName());
 //			System.out.println("File Name:"+savedFiledata.getFileName());
+			
+			
+			Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+	    	ZAccount user = null;
+			if (authentication != null && authentication.isAuthenticated()) {
+				user = (ZAccount) authentication.getPrincipal();
+			}
+			
+			FormHistory history = FormHistory.builder()
+	    			.detail("Upload file: "+ savedFiledata.getFileName())
+	    			.form(form)
+	    			.accountName(user.getUsername())
+	    			.stepName(form.getCurrStep().getStepName())
+	    			.type(ChangeTypeEnum.UploadFiles)
+	    			.build();
+	    	formHistoryRepository.save(history);
 			return new FiledataResponse(savedFiledata);
 		} catch (IOException e) {
 			throw new RuntimeException("Could not store the file. Error:" + e.getMessage());
@@ -183,22 +224,68 @@ public class FileStorageService {
 	
 	@Transactional
 	public void deleteFile(String uuid) {
-//		Filedata fd = filedataRepository.findByStorageUuid(uuid);
+		Filedata fd = filedataRepository.findByStorageUuid(uuid);
+		Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+    	ZAccount user = null;
+		if (authentication != null && authentication.isAuthenticated()) {
+			user = (ZAccount) authentication.getPrincipal();
+		}
+		
+		FormHistory history = FormHistory.builder()
+    			.detail("Delete file: "+ fd.getFileName())
+    			.form(fd.getForm())
+    			.accountName(user.getUsername())
+    			.stepName(fd.getForm().getCurrStep().getStepName())
+    			.type(ChangeTypeEnum.DeleteFiles)
+    			.build();
+    	formHistoryRepository.save(history);
+		
 		filedataRepository.deleteByStorageUuid(uuid);
 	}
 	
 	@Transactional
 	public void deleteById(Long id) {
 //		Filedata fd = filedataRepository.findByStorageUuid(uuid);
+		Filedata fd = filedataRepository.getReferenceById(id);
+		
+		Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+    	ZAccount user = null;
+		if (authentication != null && authentication.isAuthenticated()) {
+			user = (ZAccount) authentication.getPrincipal();
+		}
+		
+		FormHistory history = FormHistory.builder()
+    			.detail("Delete file: "+ fd.getFileName())
+    			.form(fd.getForm())
+    			.accountName(user.getUsername())
+    			.stepName(fd.getForm().getCurrStep().getStepName())
+    			.type(ChangeTypeEnum.DeleteFiles)
+    			.build();
+    	formHistoryRepository.save(history);
+		
 		filedataRepository.deleteById(id);
 	}
 
 	public Resource load(String uuid) {
 		Filedata fd = filedataRepository.findByStorageUuid(uuid);
 		Path file = path.resolve(fd.getStorageFolder()+"/"+uuid);
+//		Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+//    	ZAccount user = null;
+//		if (authentication != null && authentication.isAuthenticated()) {
+//			user = (ZAccount) authentication.getPrincipal();
+//		}
 		try {
 			Resource resource = new UrlResource(file.toUri());
 			if (resource.exists() || resource.isReadable()) {
+//				FormHistory history = FormHistory.builder()
+//		    			.detail("Get file: "+ fd.getFileName())
+//		    			.form(fd.getForm())
+//		    			.accountName((String)authentication.getPrincipal())
+//		    			.stepName(fd.getForm().getCurrStep().getStepName())
+//		    			.type(ChangeTypeEnum.GetFiles)
+//		    			.build();
+//		    	formHistoryRepository.save(history);
+				
 				return resource;
 			} else {
 				throw new RuntimeException("Could not read the file.");

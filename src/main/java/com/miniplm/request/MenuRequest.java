@@ -21,5 +21,7 @@ public class MenuRequest{
 	
 	private Long parentId;
 	
+	private Long configCriteriaNodeId;
+	
     private int orderBy;
 }

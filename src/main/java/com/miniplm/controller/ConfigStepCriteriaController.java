@@ -73,14 +73,8 @@ public class ConfigStepCriteriaController {
 	@Operation(summary = "刪除StepCriteria",
                description = "刪除StepCriteria")
 	public ResponseEntity delete(@PathVariable("id") Long id){
-		ConfigStepCriteria stepCriteria = configStepCriteriaRepository.getReferenceById(id);
-		if (stepCriteria == null) {
-			return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-		}else {
-			configStepCriteriaRepository.delete(stepCriteria);
-			return new ResponseEntity<>(HttpStatus.OK);
-		}
-		
+		configStepCriteriaRepository.deleteById(id);
+		return ResponseEntity.noContent().build();
 	}
 	
 	@PutMapping("/{cscId}")

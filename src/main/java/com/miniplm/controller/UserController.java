@@ -11,6 +11,9 @@ import javax.annotation.Resource;
 import javax.persistence.EntityNotFoundException;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -21,6 +24,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.miniplm.entity.ConfigFormField;
@@ -39,18 +43,25 @@ import com.miniplm.service.UserService;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import lombok.extern.slf4j.Slf4j;
 
 @Tag(name = "User API" , description = "與User相關的API")
 @RestController
 @RequestMapping("/api/v1/users")
 @CrossOrigin
+@Slf4j
 public class UserController {
 	@Autowired
 	UserService userService;
 	
 	@GetMapping
-    public ResponseEntity<TableResultResponse<ZAccount>> getAllUser() {
-        return ResponseEntity.ok(new TableResultResponse<ZAccount>(userService.getAllUser()));
+    public ResponseEntity<TableResultResponse<Page<ZAccount>>> searchUser(Pageable pageable, @RequestParam(required = false) String username, @RequestParam(required = false) String email) {
+		return ResponseEntity.ok(new TableResultResponse(userService.srearchUser(username, email, pageable)));
+    }
+	
+	@GetMapping("/all")
+    public ResponseEntity<TableResultResponse<List<ZAccount>>> allUser(@RequestParam(required = false) String username, @RequestParam(required = false) String email) {
+		return ResponseEntity.ok(new TableResultResponse(userService.srearchUser(username, email)));
     }
 	
 	@GetMapping(value = "/{id}")

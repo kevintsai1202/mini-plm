@@ -1,6 +1,7 @@
 package com.miniplm.entity;
 
 import java.util.List;
+import java.util.Set;
 
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
@@ -10,6 +11,9 @@ import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
+import javax.persistence.JoinTable;
+import javax.persistence.ManyToMany;
+import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
 import javax.persistence.OneToOne;
 import javax.persistence.OrderBy;
@@ -29,6 +33,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import lombok.ToString;
 
 @Proxy(lazy = false)
 @Setter
@@ -80,6 +85,15 @@ public class ConfigFormType extends BaseEntity{
     @OneToOne(cascade = CascadeType.MERGE, fetch = FetchType.EAGER)
     @JoinColumn(name = "CONFIG_WORKFLOW_ID", referencedColumnName = "ID")
     private ConfigWorkflow configWorkflow;
+        
+//    @JsonIgnore
+	@ManyToMany(fetch = FetchType.EAGER, cascade = CascadeType.ALL)
+	@JoinTable(
+          name = "MP_CONFIG_FORM_TABLE",
+          joinColumns = @JoinColumn(name = "CONFIG_FORM_ID"),
+          inverseJoinColumns = @JoinColumn(name = "CONFIG_TABLEHEADER_ID")
+	)
+    private Set<ConfigTableHeader> configTableHeaders;
 
     @Override
     public int hashCode() {

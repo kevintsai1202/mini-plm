@@ -19,6 +19,7 @@ public interface FormRepository extends JpaRepository<Form, Long>, JpaSpecificat
 	List<Form> findByCreator(ZAccount owner);
 	Page<Form> findByConfigFormType(ConfigFormType configFormType, Pageable pageable);
 	Page<Form> findByCreator(ZAccount owner, Pageable pageable);
+	Page<Form> findByFormNumberContainingIgnoreCaseOrDescriptionContainingIgnoreCase(String formNumber, String desc, Pageable pageable);
 	
 //	@Query(value = "select * from MP_FORM where ENABLED = 1 and CREATOR_ID = :userId", nativeQuery = true)
 //	List<Form> findByCreatorId(@Param("userId") String userId);

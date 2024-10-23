@@ -297,6 +297,7 @@ public class AuthorizationService {
 	public Privilege updatePrivilegeDetails(Privilege privilege) {
 		Privilege savedPrivilege = privilegeRepository.getReferenceById(privilege.getPrivilegeId());
 		savedPrivilege.setFields(privilege.getFields());
+		savedPrivilege.setTables(privilege.getTables());
 		savedPrivilege.setObjId(privilege.getObjId());
 		savedPrivilege.setPrivilege(privilege.getPrivilege());
 		savedPrivilege.setPrivilegeName(privilege.getPrivilegeName());

@@ -33,6 +33,7 @@ import com.miniplm.repository.ConfigFormNumberRepository;
 import com.miniplm.repository.ConfigStepRepository;
 import com.miniplm.repository.ConfigWorkflowRepository;
 import com.miniplm.request.ConfigStepRequest;
+import com.miniplm.request.ConfigWorkflowRequest;
 import com.miniplm.response.ConfigStepResponse;
 import com.miniplm.response.ConfigWorkflowResponse;
 import com.miniplm.response.TableResultResponse;
@@ -90,8 +91,8 @@ public class ConfigWorkflowController {
 	@PostMapping()
 	@Operation(summary = "建立新流程",
                description = "創建新的流程")
-	public ResponseEntity<ConfigWorkflow> create(@RequestBody @Validated ConfigWorkflow workflow){
-		return ResponseEntity.ok(configWorkflowRepository.save(workflow));
+	public ResponseEntity<ConfigWorkflow> create(@RequestBody @Validated ConfigWorkflowRequest cwfReq){
+		return ResponseEntity.ok(configWorkflowService.createWorkflow(cwfReq));
 	}
 	
 	@DeleteMapping("/{id}")
@@ -110,12 +111,8 @@ public class ConfigWorkflowController {
 	@PutMapping("/{id}")
 	@Operation(summary = "依id更新流程",
 		       description = "透過id更新流程的資料")
-	public ResponseEntity<ConfigWorkflow> updateWorkflowById(@PathVariable("id") Long id, @RequestBody ConfigWorkflow workflow) {
-		ConfigWorkflow oldWorkflow = configWorkflowRepository.getReferenceById(id);
-		oldWorkflow.setDescription(workflow.getDescription());
-		oldWorkflow.setName(workflow.getName());
-		oldWorkflow.setStatus(workflow.getStatus());
-		return ResponseEntity.ok(configWorkflowRepository.save(oldWorkflow));
+	public ResponseEntity<ConfigWorkflow> updateWorkflowById(@PathVariable("id") Long id, @RequestBody ConfigWorkflowRequest cwfReq) {
+		return ResponseEntity.ok(configWorkflowService.updateWorkflow(id, cwfReq));
 	}
 	
 	@PutMapping("/{id}/switchWorkflowStatus")

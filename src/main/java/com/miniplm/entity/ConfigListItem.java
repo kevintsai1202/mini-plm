@@ -31,6 +31,7 @@ import lombok.ToString;
 @Getter
 @NoArgsConstructor
 @Entity
+@ToString
 @Table(name = "MP_CONFIG_LISTITEM")
 @SQLDelete(sql = "UPDATE MP_CONFIG_LISTITEM SET enabled=0 WHERE id=?")
 @Where(clause = "enabled = true")

@@ -5,6 +5,8 @@ import java.util.List;
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.EnumType;
+import javax.persistence.Enumerated;
 import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
@@ -38,8 +40,6 @@ import lombok.Setter;
 @Where(clause = "enabled = true")
 @SequenceGenerator(name="MP_SEQUENCE_GENERATOR", sequenceName="MP_SEQ", initialValue=1, allocationSize=1)
 public class ConfigListNode extends BaseEntity{
-	
-
 //    @GeneratedValue(strategy=GenerationType.IDENTITY)
 	@Id
 	@GeneratedValue(strategy=GenerationType.SEQUENCE, generator="MP_SEQUENCE_GENERATOR")
@@ -72,6 +72,13 @@ public class ConfigListNode extends BaseEntity{
 	
 	@Column(name = "DESCRIPTION", length = 255)
 	private String description;
+	
+	@Enumerated(EnumType.STRING)
+	@Column(name = "LIST_TYPE", length = 255)
+	private ListTypeEnum listType;
+	
+	@Column(name = "SQL", length = 4000)
+	private String sql;
 	
 //	@JsonIgnore
 	@OneToMany( mappedBy = "listNode" , cascade = CascadeType.MERGE, fetch = FetchType.EAGER)

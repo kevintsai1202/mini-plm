@@ -2,6 +2,8 @@ package com.miniplm.entity;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.EnumType;
+import javax.persistence.Enumerated;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
@@ -42,29 +44,9 @@ public class ConfigFormField extends BaseEntity{
     @Column(name = "ID", unique = true, nullable = false)
 	private Long cffId;
 	
-	@Override
-    public int hashCode() {
-        HashCodeBuilder hcb = new HashCodeBuilder();
-        hcb.append(cffId);
-        return hcb.toHashCode();
-    }
- 
-    @Override
-    public boolean equals(Object obj) {
-        if (this == obj) {
-            return true;
-        }
-        if (!(obj instanceof ConfigFormField)) {
-            return false;
-        }
-        ConfigFormField that = (ConfigFormField) obj;
-        EqualsBuilder eb = new EqualsBuilder();
-        eb.append(cffId, that.cffId);
-        return eb.isEquals();
-    }
-	
+	@Enumerated(EnumType.STRING)
 	@Column(name = "FIELD_TYPE", nullable = false, length = 45)
-	private String fieldType;
+	private DataTypeEnum fieldType;
 	
 	@Column(name = "MULTIPLE", nullable = false)
 	private Boolean multiple = false;
@@ -104,12 +86,12 @@ public class ConfigFormField extends BaseEntity{
 	@JoinColumn(name = "FORM_TYPE_ID", referencedColumnName = "ID")
     private ConfigFormType configFormType;
     
-    @OneToOne
+    @ManyToOne
     @JoinColumn(name = "LISTNODE_ID", referencedColumnName = "ID")
     private ConfigListNode configListNode;
 
     
-    public ConfigFormField(String fieldType, String dataIndex, int orderBy, ConfigFormType formType) {
+    public ConfigFormField(DataTypeEnum fieldType, String dataIndex, int orderBy, ConfigFormType formType) {
     	this.fieldType = fieldType;
     	this.dataIndex = dataIndex;
     	this.fieldName = dataIndex;
@@ -121,7 +103,7 @@ public class ConfigFormField extends BaseEntity{
     	this.configFormType = formType;
     }
     
-    public ConfigFormField(String fieldType, String dataIndex, int orderBy, ConfigFormType formType, Boolean multiple) {
+    public ConfigFormField(DataTypeEnum fieldType, String dataIndex, int orderBy, ConfigFormType formType, Boolean multiple) {
     	this.fieldType = fieldType;
     	this.dataIndex = dataIndex;
     	this.fieldName = dataIndex;
@@ -131,5 +113,26 @@ public class ConfigFormField extends BaseEntity{
     	this.visible = false;
     	this.htmlFormat = false;
     	this.configFormType = formType;
+    }
+    
+    @Override
+    public int hashCode() {
+        HashCodeBuilder hcb = new HashCodeBuilder();
+        hcb.append(cffId);
+        return hcb.toHashCode();
+    }
+ 
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj) {
+            return true;
+        }
+        if (!(obj instanceof ConfigFormField)) {
+            return false;
+        }
+        ConfigFormField that = (ConfigFormField) obj;
+        EqualsBuilder eb = new EqualsBuilder();
+        eb.append(cffId, that.cffId);
+        return eb.isEquals();
     }
 }

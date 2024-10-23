@@ -4,9 +4,9 @@ import javax.validation.Valid;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -14,21 +14,21 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.miniplm.entity.ConfigStep;
 import com.miniplm.entity.Form;
 import com.miniplm.entity.ZAccount;
 import com.miniplm.request.SignOffRequest;
 import com.miniplm.response.ActionResponse;
-import com.miniplm.response.MessageResponse;
 import com.miniplm.response.TableResultResponse;
 import com.miniplm.service.ActionService;
 import com.miniplm.service.UserService;
 
 import io.swagger.v3.oas.annotations.Operation;
+import lombok.extern.slf4j.Slf4j;
 
 @RestController
 @RequestMapping("/api/v1/actions")
 @CrossOrigin
+@Slf4j
 public class ActionController {
 //	@Resource
 //	private ActionRepository actionRepository;
@@ -36,8 +36,8 @@ public class ActionController {
 	@Autowired
 	private ActionService actionService;
 	
-	@Autowired
-	private UserService userService;
+//	@Autowired
+//	private UserService userService;
 	
 	@GetMapping("/me")
 	@Operation(summary = "取得自己的Actions列表",
@@ -46,6 +46,7 @@ public class ActionController {
 //		String username = SecurityContextHolder.getContext().getAuthentication().getName();
 //		ZAccount user = (ZAccount) userService.loadUserByUsername(username);
 		ZAccount user = (ZAccount) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+		log.info("User: {}",user);
 		return ResponseEntity.ok(new TableResultResponse<ActionResponse>(actionService.listMyActions(user.getId())));
 	}
 	
@@ -83,6 +84,15 @@ public class ActionController {
 	public ResponseEntity<Form> signOffByFormId(@PathVariable("formId") Long formId, @Valid @RequestBody SignOffRequest signOffRequest) {
 			
 		return ResponseEntity.ok(actionService.signOffByFormId(formId, signOffRequest));
+	}
+	
+	@DeleteMapping("/{actionId}")
+	@Operation(summary = "刪除簽核者",
+		       description = "刪除簽核者")
+	public ResponseEntity<Form> deleteApprover(@PathVariable("actionId") Long actionId) {
+		log.info("delete action: {}", actionId);
+		Form form = actionService.deleteApprover(actionId);
+		return ResponseEntity.ok(form);
 	}
 	
 //	@GetMapping("/forms/{formId}/checkunfinishactions")

@@ -7,6 +7,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import javax.annotation.Resource;
+import javax.security.sasl.AuthenticationException;
 import javax.transaction.Transactional;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -17,48 +18,56 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.DigestUtils;
 
 import com.miniplm.entity.Action;
+import com.miniplm.entity.ChangeTypeEnum;
 import com.miniplm.entity.ConfigStep;
 import com.miniplm.entity.ConfigWorkflow;
 import com.miniplm.entity.Form;
+import com.miniplm.entity.FormHistory;
+import com.miniplm.entity.LdapUser;
+import com.miniplm.entity.YmlData;
 import com.miniplm.entity.ZAccount;
 import com.miniplm.exception.BusinessException;
 import com.miniplm.repository.ActionRepository;
 import com.miniplm.repository.ConfigFormNumberRepository;
 import com.miniplm.repository.ConfigFormTypeRepository;
 import com.miniplm.repository.FormDataRepository;
+import com.miniplm.repository.FormHistoryRepository;
 import com.miniplm.repository.FormRepository;
 import com.miniplm.repository.UserRepository;
 import com.miniplm.request.SignOffRequest;
 import com.miniplm.response.ActionResponse;
 
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 @Service
 @Slf4j
+//@RequiredArgsConstructor
 public class ActionService {
-	@Resource
-	FormRepository formRepository;
-
-	@Resource
-	FormDataRepository formDataRepository;
-
-	@Resource
-	UserRepository userRepository;
-
-	@Resource
-	ConfigFormTypeRepository configFormTypeRepository;
-
-	@Resource
-	ConfigFormNumberRepository configFormNumberRepository;
-
-	@Resource
-	ActionRepository actionRepository;
-
 	@Autowired
-	FormStatusService formStatusService;
-	
+	private YmlData ymlData;
+	@Resource
+	private FormRepository formRepository;
+	@Resource
+	private FormDataRepository formDataRepository;
+	@Resource
+	private UserRepository userRepository;
+	@Resource
+	private ConfigFormTypeRepository configFormTypeRepository;
+	@Resource
+	private ConfigFormNumberRepository configFormNumberRepository;
+	@Resource
+	private ActionRepository actionRepository;
+	@Resource
+	private FormHistoryRepository formHistoryRepository;
 	@Autowired
-	QueryService queryService;
+	private FormStatusService formStatusService;
+	@Autowired
+	private QueryService queryService;
+	@Autowired
+	private LdapService ldapService;
+	@Autowired
+	private UserService userService;
 
 //	@Autowired
 //	private PasswordEncoder passwordEncoder;
@@ -101,6 +110,7 @@ public class ActionService {
 			throw new InternalAuthenticationServiceException("Can't get current user");
 		}
 		ZAccount me = (ZAccount) authentication.getPrincipal();
+		//TODO 改sql加入代理人判斷
 		List<Action> myActions =actionRepository.FindMyActionsByFormIdAndStepId(formId, stepId, me.getId());
 		System.out.println(myActions);
 		return (myActions.stream().filter((action) -> action.getType().equals("A")).count() > 0);
@@ -116,9 +126,46 @@ public class ActionService {
 		Form form = formRepository.getReferenceById(formId);
 		List<Action> myActions = actionRepository.FindMyActionsByFormIdAndStepId(formId, form.getCurrStep().getCsId(), me.getId());
 		Action action = myActions.stream().findFirst().orElse(null);
+		
 		return signOff(action.getAId(), signOffRequest);
 	}
 	
+	@Transactional
+	public Form deleteApprover(Long _actionId) {
+		Action action = actionRepository.getReferenceById(_actionId);
+		Form form = action.getForm();
+		ConfigStep currStep = form.getCurrStep();
+		actionRepository.deleteById(_actionId);
+		List<Action> listApprovers= actionRepository.findByTypeAndFormAndConfigStepAndFinishFlag("A", form, currStep, false);
+		int countByApprovers = listApprovers.size();
+		
+		
+		ConfigStep nextStep = currStep.getNextStep();
+		log.info("After remove Approve, Approvers count:{}", countByApprovers);
+		log.info("Next Step: {}", nextStep);
+		if ((countByApprovers == 0) && (nextStep != null)) {
+			ConfigStep newStep = formStatusService.autoChangeStep(form, currStep.getNextStep());
+			log.info("Ststus Change to: {}", newStep.getStepName());
+			
+			Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+			if (authentication == null || !authentication.isAuthenticated()) {
+				throw new InternalAuthenticationServiceException("Can't get current user");
+			}
+			ZAccount user = (ZAccount) authentication.getPrincipal();
+			
+			FormHistory history = FormHistory.builder()
+	    			.detail("From: "+ currStep.getStepName()+ " To: "+ newStep.getStepName())
+	    			.form(form)
+	    			.accountName(user.getUsername())
+	    			.stepName(currStep.getStepName())
+	    			.type(ChangeTypeEnum.ChangeStatus)
+	    			.build();
+	    	formHistoryRepository.save(history);
+			
+			form.setCurrStep(newStep);
+		}
+		return formRepository.save(form);
+	}
 	
 	@Transactional
 	public Form signOff(Long _actionId, SignOffRequest signOffRequest) {
@@ -130,7 +177,7 @@ public class ActionService {
 
 		Action action = actionRepository.getReferenceById(actionId);
 		if (action.getFinishFlag() != null && action.getFinishFlag()) {
-			throw new BusinessException("Sign-off completed");
+			throw new BusinessException("Sign-off flag is completed");
 		}
 
 		Form form = action.getForm();
@@ -144,12 +191,36 @@ public class ActionService {
 			throw new BusinessException("Step not match");
 		}
 
-		ZAccount user = action.getUser();
-		String md5Password = "";
-		md5Password = DigestUtils.md5DigestAsHex(password.getBytes()).toUpperCase();
-		if (!md5Password.equals(user.getPassword())) {
-			throw new BusinessException("Password Error");
+		Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+		if (authentication == null || !authentication.isAuthenticated()) {
+			throw new InternalAuthenticationServiceException("Can't get current user");
 		}
+		ZAccount user = (ZAccount) authentication.getPrincipal();
+		
+//		ZAccount actionUser = action.getUser();
+//		ZAccount deputy = actionUser.getDeputy();
+		
+		String authenticateMethod = ymlData.getAuthenticateMethod();
+		LdapUser ldapUser = null;
+		String md5Password = "";
+		
+		if ("ldap".equalsIgnoreCase(authenticateMethod)) {
+			ldapUser = ldapService.authenticate(user.getUsername(), password);
+			
+			log.info("ldapUser: {}", ldapUser);
+			if (ldapUser == null) {			
+				md5Password = DigestUtils.md5DigestAsHex(password.getBytes()).toUpperCase();
+				if (!md5Password.equals(user.getPassword())) {
+					throw new BusinessException("Password Error");
+				}
+			}
+		} else { // db
+			md5Password = DigestUtils.md5DigestAsHex(password.getBytes()).toUpperCase();
+			if (!md5Password.equals(user.getPassword())) {
+				throw new BusinessException("Password Error");
+			}
+		}
+		
 		List<Action> listApprovers = actionRepository.findByTypeAndFormAndConfigStepAndFinishFlag("A", form, currStep, false);
 //		int countByApprovers = actionRepository.countApproversByFormIdAndStepId(form.getFId(), currStep.getCsId());
 		int countByApprovers = listApprovers.size();
@@ -157,6 +228,8 @@ public class ActionService {
 		action.setSignoffType(signoffType);
 		action.setComments(comments);
 		action.setFinishFlag(true);
+		action.setSignoffUser(user);
+		
 		action = actionRepository.saveAndFlush(action);
 		
 		ConfigStep tempStep = currStep;
@@ -167,39 +240,23 @@ public class ActionService {
 			log.info("After Approve, Approvers count:{}", countByApprovers);
 			
 			if (countByApprovers == 0) {
-				ConfigStep newStep = formStatusService.autoChangeStep(form, currStep.getNextStep());
-				log.info("Ststus Change to: {}", newStep.getStepName());
-				form.setCurrStep(newStep);
+				if (currStep.getNextStep()!=null) {
+					ConfigStep newStep = formStatusService.autoChangeStep(form, currStep.getNextStep());
+					log.info("Ststus Change to: {}", newStep.getStepName());
+					
+					FormHistory history = FormHistory.builder()
+			    			.detail("From: "+ currStep.getStepName()+ " To: "+ newStep.getStepName())
+			    			.form(form)
+			    			.accountName(user.getUsername())
+			    			.stepName(currStep.getStepName())
+			    			.type(ChangeTypeEnum.ChangeStatus)
+			    			.build();
+			    	formHistoryRepository.save(history);
+					
+					form.setCurrStep(newStep);
+				}
 			}
-			/*
-			 * 以下移至 autoChangeStep
-			 * Long cstepId = currStep.getCsId();
-			int countByApprovers = actionRepository.countApproversByFormIdAndStepId(form.getFId(), cstepId);
-			System.out.println("curr Step Mame:" + currStep.getStepName());
-			System.out.println("countByApprovers:" + countByApprovers);
-			
-//			ConfigStep tempStep = currStep;
-
-			while ((countByApprovers == 0) && (tempStep.getNextStep() != null)) {
-//			System.out.println("countByApprovers:"+countByApprovers);
-//			form.setCurrStep(currStep.getNextStep());
-
-//			System.out.println("tempStep:"+tempStep.getStepName());
-				tempStep = tempStep.getNextStep();
-				countByApprovers = actionRepository.countApproversByFormIdAndStepId(form.getFId(), tempStep.getCsId());
-
-				System.out.println("temp Step Mame:" + tempStep.getStepName());
-				System.out.println("countByApprovers:" + countByApprovers);
-				// Change Status
-				// System.out.println("Need Change Status");
-			}*/
-//				log.info("Step change to: {}" , newStep.getStepName());
-	//			System.out.println("Step change to:" + newStep.getStepName());
-//				form.setCurrStep(newStep);
-//				actionRepository.updateCurrCanNoticeActions(form.getFId(), newStep.getCsId());
-//			}
 		}else {//reject
-//			ConfigStep tempStep = currStep;
 			ignoreAllActions(form.getFId());
 			ConfigStep rejectStep = tempStep.getRejectStep();
 			ConfigStep firstStep = ConfigWorkflowService.getFirstStep(form);
@@ -209,6 +266,15 @@ public class ActionService {
 //				System.out.println("Step change to first step:" + firstStep.getStepName());
 				form.setCurrStep(firstStep);
 				returnToPending(form.getFId());
+				
+				FormHistory history = FormHistory.builder()
+		    			.detail("From: "+currStep.getStepName() + " To: "+firstStep.getStepName())
+		    			.form(form)
+		    			.accountName(user.getUsername())
+		    			.stepName(currStep.getStepName())
+		    			.type(ChangeTypeEnum.ChangeStatus)
+		    			.build();
+		    	formHistoryRepository.save(history);
 			}else {
 				if ( rejectStep != firstStep){
 //				int countByApprovers = actionRepository.countApproversByFormIdAndStepId(form.getFId(), rejectStep.getCsId());
@@ -217,6 +283,17 @@ public class ActionService {
 //				System.out.println("Ststus Change to reject step:" + rejectStep.getStepName());
 					ConfigStep newStep = formStatusService.autoChangeStep(form, rejectStep);
 					log.info("Step change to:" + newStep.getStepName());
+					
+					FormHistory history = FormHistory.builder()
+			    			.detail("From: "+currStep.getStepName() + " To: "+newStep.getStepName())
+			    			.form(form)
+			    			.accountName(user.getUsername())
+			    			.stepName(currStep.getStepName())
+			    			.type(ChangeTypeEnum.ChangeStatus)
+			    			.build();
+			    	formHistoryRepository.save(history);
+					
+					
 //					System.out.println("Step change to:" + newStep.getStepName());
 					form.setCurrStep(newStep);
 					actionRepository.updateCurrCanNoticeActions(form.getFId(), newStep.getCsId());
@@ -225,13 +302,30 @@ public class ActionService {
 					log.info("Ststus Change to: {}", firstStep.getStepName());
 //					System.out.println("Ststus Change to:" + firstStep.getStepName());
 					form.setCurrStep(firstStep);
+					
+					FormHistory history = FormHistory.builder()
+			    			.detail("From: "+currStep.getStepName() + " To: "+firstStep.getStepName())
+			    			.form(form)
+			    			.accountName(user.getUsername())
+			    			.stepName(currStep.getStepName())
+			    			.type(ChangeTypeEnum.ChangeStatus)
+			    			.build();
+			    	formHistoryRepository.save(history);
 					returnToPending(form.getFId());
-				}
-				//將目前關卡後的Action重建
-				
+				}			
 			}
-//			actionService.initActions(form);
 		}
+		
+
+		
+		FormHistory history = FormHistory.builder()
+    			.detail(signoffType?"Approve comment: " +comments :"Reject comment: "+comments)
+    			.form(form)
+    			.accountName(user.getUsername())
+    			.stepName(currStep.getStepName())
+    			.type(signoffType?ChangeTypeEnum.Approve:ChangeTypeEnum.Reject)
+    			.build();
+    	formHistoryRepository.save(history);
 		return formRepository.save(form);
 	}
 
@@ -268,6 +362,12 @@ public class ActionService {
 //	}
 
 	public List<ActionResponse> listMyActions(String userId) {
+		Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+		if (authentication == null || !authentication.isAuthenticated()) {
+			throw new InternalAuthenticationServiceException("Can't get current user");
+		}
+		ZAccount me = (ZAccount) authentication.getPrincipal();
+		
 		log.info("userId: {}" , userId);
 //		System.out.println("userId:" + userId);
 		List<ActionResponse> results = new ArrayList<ActionResponse>();
@@ -291,6 +391,12 @@ public class ActionService {
 				actionResponse.setFormTypeName(action.getForm().getConfigFormType().getName());
 				actionResponse.setFormDescription(action.getForm().getDescription());
 				actionResponse.setFinishFlag(action.getFinishFlag());
+				log.info("me id:{} action user Id:{}", me.getId(), action.getUser().getId());
+				if (me.getId().equals(action.getUser().getId()))
+					actionResponse.setTaFlag(false);
+				else
+					actionResponse.setTaFlag(true);
+
 				results.add(actionResponse);
 //			}
 		}
@@ -304,9 +410,9 @@ public class ActionService {
 		List<ActionResponse> results = new ArrayList<ActionResponse>();
 		List<Action> source = actionRepository.findByFormIdAndType(formId, "A");
 		for (Action action : source) {
-			ConfigStep actionStep = action.getConfigStep();
+//			ConfigStep actionStep = action.getConfigStep();
 //			System.out.println("actionStep:"+actionStep);
-			ConfigStep currStep = action.getForm().getCurrStep();
+//			ConfigStep currStep = action.getForm().getCurrStep();
 //			System.out.println("currStep:"+currStep);
 
 			ActionResponse actionResponse = new ActionResponse();
@@ -320,6 +426,8 @@ public class ActionService {
 			actionResponse.setFormNumber(action.getForm().getFormNumber());
 			actionResponse.setFormTypeName(action.getForm().getConfigFormType().getName());
 			actionResponse.setFormDescription(action.getForm().getDescription());
+			if (action.getSignoffUser() != null)
+				actionResponse.setSignoffUsername(action.getSignoffUser().getUsername());
 			actionResponse.setFinishFlag(action.getFinishFlag());
 			results.add(actionResponse);
 
@@ -361,20 +469,29 @@ public class ActionService {
 			}
 			
 		}		
+		
+		FormHistory history = FormHistory.builder()
+    			.detail("Add Approvers: "+approverIds)
+    			.form(form)
+    			.accountName(creator.getUsername())
+    			.stepName(step.getStepName())
+    			.type(ChangeTypeEnum.AddApprovers)
+    			.build();
+    	formHistoryRepository.save(history);
 		return addedApprovers;
 	}
 	
 	@Transactional
 	public ActionResponse returnToPending(Long formId) {
-		ZAccount creator = new ZAccount();
 //		List<ActionResponse> addedApprovers = new ArrayList<>();
 		Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 		if (authentication == null || !authentication.isAuthenticated()) {
 			throw new InternalAuthenticationServiceException("Can't get current user");
 		}
-		creator = (ZAccount) authentication.getPrincipal();
+		ZAccount creator = (ZAccount) authentication.getPrincipal();
 		
 		Form form = formRepository.getReferenceById(formId);
+		ZAccount user = form.getCreator();
 		ConfigStep step = form.getCurrStep();
 		
 //		for (String approverId: approverIds) {
@@ -388,7 +505,8 @@ public class ActionService {
 				.configStep(step)
 				.form(form)
 				.type("R")
-				.user(creator)
+				.user(user)
+				.signoffUser(user)
 				.creator(creator)
 				.build();
 		Action savedAction = actionRepository.save(action);
@@ -407,13 +525,16 @@ public class ActionService {
 //		for (int i = iStart; i < steps.size(); i++) {
 //			ConfigStep step = steps.get(i);
 //		steps.forEach((step)->{
-			log.info("Step: {}" , nextStep.getStepName());
+			log.info("init Step Actions: {}" , nextStep.getStepName());
 //			System.out.println("Step:" + step.getStepName());
-			List<Object> allApproverIds = new LinkedList<>();
-			List<Object> stepApproverUserIds = nextStep.getApprovers();
+			List<String> allApproverIds = new LinkedList<>();
+			List<String> stepApproverUserIds = nextStep.getApprovers();
+			log.info("setp approver: {}", stepApproverUserIds);
 			if (stepApproverUserIds == null) stepApproverUserIds = new LinkedList<>();
-			List<Object> criteriaApproverUserIds = queryService.getApproversByAllStepCriterias(form.getFId(), nextStep);
 			
+			
+			List<String> criteriaApproverUserIds = queryService.getApproversByAllStepCriterias(form.getFId(), nextStep);
+			log.info("criteria approver: {}", criteriaApproverUserIds);
 			allApproverIds = Stream.concat(stepApproverUserIds.stream(), criteriaApproverUserIds.stream())
             .distinct()
             .collect(Collectors.toList());
@@ -426,7 +547,7 @@ public class ActionService {
 					if (authentication == null || !authentication.isAuthenticated()) {
 						throw new InternalAuthenticationServiceException("Can't get current user");
 					}
-					log.info("ZAccount: {}", authentication.getPrincipal());
+					log.info("Curr User: {}", authentication.getPrincipal());
 //					System.out.println(authentication.getPrincipal());
 //					String userName = (String) authentication.getPrincipal();
 //					Optional<ZAccount> oCreator = userRepository.findByUsername(userName);
@@ -446,7 +567,7 @@ public class ActionService {
 					actionRepository.save(action);
 				});
 			}
-			List<Object> notifyUserIds = nextStep.getNotifiers();
+			List<String> notifyUserIds = nextStep.getNotifiers();
 			if (notifyUserIds != null) {
 				notifyUserIds.forEach((userId) -> {
 //					Long lUserId = Long.valueOf(userId.toString());

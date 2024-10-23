@@ -8,6 +8,8 @@ import java.util.Set;
 import javax.persistence.EntityNotFoundException;
 import javax.transaction.Transactional;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -49,15 +51,42 @@ public class UserService implements UserDetailsService{
     
 	@Transactional
     public ZAccount changePassword(AuthRequest changePasswordRequest) throws NoSuchAlgorithmException {
-    	Optional oUser = userRepository.findByUsername(changePasswordRequest.getUsername());
+    	Optional oUser = userRepository.findByUsernameIgnoreCase(changePasswordRequest.getUsername());
     	ZAccount user = (ZAccount) oUser.get();
     	user.setPassword(new Md5PasswordEncoder().encode(changePasswordRequest.getPassword()));
         userRepository.save(user);
         return userRepository.save(user);
     }
 
-    public List<ZAccount> getAllUser() {
-        return userRepository.findAll();
+	public List<ZAccount> srearchUser(String username, String email) {
+    	log.info("Username: {} email: {}", username, email);
+    	if (username != null && email != null) {
+    		return userRepository.findByUsernameContainingIgnoreCaseAndEmailContainingIgnoreCase(username, email);
+    	}
+    	else if (username != null && email == null) {
+    		return userRepository.findByUsernameContainingIgnoreCase(username);
+    	}
+    	else if (username == null && email != null) {
+    		return userRepository.findByEmailContainingIgnoreCase(email);
+    	}else {
+    		return userRepository.findAll();
+    	}	
+    }
+	
+    public Page<ZAccount> srearchUser(String username, String email, Pageable pageable) {
+    	log.info("Username: {} email: {}", username, email);
+    	log.info("Page: {}", pageable);
+    	if (username != null && email != null) {
+    		return userRepository.findByUsernameContainingIgnoreCaseAndEmailContainingIgnoreCase(username, email, pageable);
+    	}
+    	else if (username != null && email == null) {
+    		return userRepository.findByUsernameContainingIgnoreCase(username, pageable);
+    	}
+    	else if (username == null && email != null) {
+    		return userRepository.findByEmailContainingIgnoreCase(email, pageable);
+    	}else {
+    		return userRepository.findAll(pageable);
+    	}	
     }
 
     public ZAccount getUser(String id) {
@@ -73,7 +102,7 @@ public class UserService implements UserDetailsService{
 	public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
 //		log.info("username: {}", username);
 //		System.out.println("username:"+username);
-		Optional<ZAccount> instance = userRepository.findByUsername(username);
+		Optional<ZAccount> instance = userRepository.findByUsernameIgnoreCase(username);
         if (instance.isPresent()) {
 //        	log.info("zaccount exist!");
 //        	System.out.println("zaccount exist!");

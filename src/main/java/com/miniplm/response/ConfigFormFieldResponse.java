@@ -42,7 +42,7 @@ public class ConfigFormFieldResponse implements Serializable{
 	public ConfigFormFieldResponse(ConfigFormField cff) {
 		this.title = cff.getFieldName();
 		this.dataIndex = cff.getDataIndex();
-		this.valueType = cff.getFieldType();
+		this.valueType = cff.getFieldType().toString();
 		this.orderBy = cff.getOrderBy();
 //		if (cff.getRequired() || (cff.getPattern() != null)) {
 //			this.formItemProps = new Rules(cff);

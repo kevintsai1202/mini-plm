@@ -8,50 +8,61 @@ import javax.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.CachePut;
 import org.springframework.cache.annotation.Cacheable;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
+import com.miniplm.entity.ChangeTypeEnum;
 import com.miniplm.entity.ConfigStep;
 import com.miniplm.entity.Form;
+import com.miniplm.entity.FormHistory;
+import com.miniplm.entity.ZAccount;
 import com.miniplm.exception.BusinessException;
 import com.miniplm.repository.ActionRepository;
 import com.miniplm.repository.ConfigFormNumberRepository;
 import com.miniplm.repository.ConfigFormTypeRepository;
 import com.miniplm.repository.ConfigWorkflowRepository;
 import com.miniplm.repository.FormDataRepository;
+import com.miniplm.repository.FormHistoryRepository;
 import com.miniplm.repository.FormRepository;
 import com.miniplm.repository.UserRepository;
 import com.miniplm.response.WorkflowResponse;
 
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 
 //用來產生流程數據的Service
 @Service
+@RequiredArgsConstructor
 @Slf4j
 public class FormStatusService {
 	@Resource
-	FormRepository formRepository;
+	private FormRepository formRepository;
 	
 	@Resource
-	FormDataRepository formDataRepository;
+	private FormDataRepository formDataRepository;
 	
 	@Resource
-	UserRepository userRepository;
+	private UserRepository userRepository;
 	
 	@Resource
-	ConfigFormTypeRepository configFormTypeRepository;
+	private ConfigFormTypeRepository configFormTypeRepository;
 	
 	@Resource
-	ConfigWorkflowRepository configWorkflowRepository;
+	private ConfigWorkflowRepository configWorkflowRepository;
 	
 	@Resource
-	ConfigFormNumberRepository configFormNumberRepository;
+	private ConfigFormNumberRepository configFormNumberRepository;
 	
 	@Resource
-	ActionRepository actionRepository;
+	private FormHistoryRepository formHistoryRepository;
+	
+	@Resource
+	private ActionRepository actionRepository;
 	
 	@Autowired
-	ActionService actionService;
+	private ActionService actionService;
 	
 	@Transactional
 	public WorkflowResponse getFormWorkflow(Long formId) {
@@ -97,6 +108,7 @@ public class FormStatusService {
 		ConfigStep currStep = form.getCurrStep();
 		ConfigStep nextStep = currStep.getNextStep();
 		if (nextStep != null) {
+			log.info("auto Change to:{}", nextStep.getStepName());
 			ConfigStep newStep = autoChangeStep(form, nextStep);
 			
 			actionService.ignoreStepActions(formId, currStep.getCsId());
@@ -104,6 +116,22 @@ public class FormStatusService {
 			Form savedForm = formRepository.save(form);
 			
 			actionRepository.updateCurrCanNoticeActions(formId, newStep.getCsId());
+			
+			Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+	    	ZAccount user = null;
+			if (authentication != null && authentication.isAuthenticated()) {
+				user = (ZAccount) authentication.getPrincipal();
+			}
+			
+			FormHistory history = FormHistory.builder()
+	    			.detail("From: "+ currStep.getStepName()+ " To: "+ newStep.getStepName())
+	    			.form(form)
+	    			.accountName(user.getUsername())
+	    			.stepName(currStep.getStepName())
+	    			.type(ChangeTypeEnum.ChangeStatus)
+	    			.build();
+	    	formHistoryRepository.save(history);
+			
 			return newStep;
 		}
 		return currStep;

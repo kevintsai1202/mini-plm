@@ -40,13 +40,13 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class AuthController {
 	
-	private final TokenRepository tokenRepository;
+//	private final TokenRepository tokenRepository;
 	
     private final JwtService jwtService;
 	
 	private final AuthService authService;
 	
-    private final UserService userService;
+//    private final UserService userService;
 
     private final JwtUtils jwtUtils;
 //

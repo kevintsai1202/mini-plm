@@ -19,4 +19,6 @@ public class PrivilegeRequest {
 	String privilege;
 	
 	Set<String> fields;
+	
+	Set<Integer> tables;
 }

@@ -11,4 +11,7 @@ public interface ConfigFormTypeRepository extends JpaRepository<ConfigFormType, 
 	
 	@Query(value="SELECT * FROM MP_CONFIG_FORM_TYPE WHERE ENABLED = 1 AND CONFIG_WORKFLOW_ID IS NOT NULL AND CONFIG_FORM_NUMBER_ID IS NOT NULL",nativeQuery = true)
 	List<ConfigFormType> listAllNormalFormTypies();
+	
+	@Query(value="SELECT * FROM MP_CONFIG_FORM_TYPE WHERE ENABLED = 1 AND CONFIG_WORKFLOW_ID IS NULL",nativeQuery = true)
+	List<ConfigFormType> listAllFormTypiesWorkflowIsNull();
 }

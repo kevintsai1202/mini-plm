@@ -9,6 +9,7 @@ import org.springframework.data.repository.query.Param;
 
 import com.miniplm.entity.ConfigFormField;
 import com.miniplm.entity.ConfigFormType;
+import com.miniplm.entity.DataTypeEnum;
 
 public interface ConfigFormFieldRepository extends JpaRepository<ConfigFormField, Long> {
 	
@@ -17,7 +18,7 @@ public interface ConfigFormFieldRepository extends JpaRepository<ConfigFormField
 //	@Query(value = "select distinct GROUPS from MP_CONFIG_FORM_FIELD where ENABLED = 1 and VISIBLE = 1 and GROUPS is not null and FORM_TYPE_ID = :id" ,nativeQuery = true)
 	public List<ConfigFormField> getFormTypeGroups(@Param("id") Long id);
 	
-	public List<ConfigFormField> findByConfigFormTypeAndFieldTypeAndVisible(ConfigFormType formType, String fieldType, Boolean visible);
+	public List<ConfigFormField> findByConfigFormTypeAndFieldTypeAndVisible(ConfigFormType formType, DataTypeEnum fieldType, Boolean visible);
 	
 	public List<ConfigFormField> findByGroups(String groups);
 	
@@ -26,4 +27,7 @@ public interface ConfigFormFieldRepository extends JpaRepository<ConfigFormField
 	
 	@Query(value = "select * from MP_CONFIG_FORM_FIELD where ENABLED = 1 and FORM_TYPE_ID = :id and VISIBLE = 1 and field_type != 'group' order by ORDER_BY" ,nativeQuery = true)
 	public List<ConfigFormField> findByFormTypeAndVisible(@Param("id") Long id);
+	
+	@Query(value = "select * from MP_CONFIG_FORM_FIELD where ENABLED = 1 and FORM_TYPE_ID = :formTypeId and FIELD_INDEX = :fieldIndex order by ORDER_BY" ,nativeQuery = true)
+	public ConfigFormField findByFormTypeAndFieldIndex(@Param("formTypeId") Long formTypeId, @Param("fieldIndex") String fieldIndex);
 }

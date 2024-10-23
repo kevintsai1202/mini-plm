@@ -1,8 +1,11 @@
 package com.miniplm.service;
 
+import java.beans.PropertyDescriptor;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 import javax.annotation.Resource;
@@ -10,20 +13,22 @@ import javax.persistence.criteria.Join;
 import javax.persistence.criteria.Predicate;
 import javax.transaction.Transactional;
 
+import org.springframework.beans.BeanUtils;
+import org.springframework.beans.BeanWrapper;
+import org.springframework.beans.BeanWrapperImpl;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.cache.annotation.CachePut;
-import org.springframework.cache.annotation.Cacheable;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
-import org.springframework.security.authentication.InternalAuthenticationServiceException;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import com.miniplm.convert.FormConverter;
 import com.miniplm.convert.FormDataConverter;
+import com.miniplm.entity.ChangeTypeEnum;
 import com.miniplm.entity.ConfigCriteriaItem;
 import com.miniplm.entity.ConfigCriteriaNode;
 import com.miniplm.entity.ConfigFormNumber;
@@ -32,12 +37,14 @@ import com.miniplm.entity.ConfigStep;
 import com.miniplm.entity.ConfigWorkflow;
 import com.miniplm.entity.Form;
 import com.miniplm.entity.FormData;
+import com.miniplm.entity.FormHistory;
 import com.miniplm.entity.OperatorEnum;
 import com.miniplm.entity.ZAccount;
 import com.miniplm.repository.ConfigFormNumberRepository;
 import com.miniplm.repository.ConfigFormTypeRepository;
 import com.miniplm.repository.ConfigWorkflowRepository;
 import com.miniplm.repository.FormDataRepository;
+import com.miniplm.repository.FormHistoryRepository;
 import com.miniplm.repository.FormRepository;
 import com.miniplm.repository.UserRepository;
 import com.miniplm.request.FormDataRequest;
@@ -68,8 +75,8 @@ public class FormDetailsService {
 	@Resource
 	ConfigFormNumberRepository configFormNumberRepository;
 	
-//	@Resource
-//	ActionRepository actionRepository;
+	@Resource
+	FormHistoryRepository formHistoryRepository;
 	
 	@Autowired
 	ActionService actionService;
@@ -80,24 +87,14 @@ public class FormDetailsService {
 	@Autowired
 	private FormConverter formConverter;
 
-	@Transactional
 	public List<FormResponse> listMyForm(){
 		ZAccount me = (ZAccount) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
 		System.out.println("me: "+me);
 		List<FormResponse> results= new ArrayList<FormResponse>();		
-//		List<Form> forms = formRepository.findAll(Sort.by("createTime").descending());
 		List<Form> forms = formRepository.findByCreator(me);
-//		List<Form> forms = formRepository.findByCreatorId(me.getId());
 		log.info("Form size: {}" , forms.size());
-//		System.out.println("Form size:" + forms.size());
 		for (Form form: forms) {
-//			FormData fd = form.getFormData();
 			FormResponse formDetails = null;
-			
-//			System.out.println("Form No:" + form.getFormNumber());
-//			System.out.println("Form Type Name:" + form.getConfigFormType().getName());
-//			System.out.println("Form Description:" + form.getDescription());
-//			System.out.println("Form Data:" + form.getFormData());
 			String workflowName = "";
 			String stepName = "";
 			if (form.getCWorkflow() != null) {
@@ -107,16 +104,11 @@ public class FormDetailsService {
 			}
 			
 			formDetails = new FormResponse(form.getFId(), form.getFormNumber(), form.getConfigFormType().getCfId(), form.getConfigFormType().getName(), form.getDescription(), null, workflowName, stepName, form.getCreator().getId(), form.getCreateTime());
-
-//			System.out.println("Form detail:"+form.getFormData());
 			results.add(formDetails);
-		}
-		
-		
+		}		
 		return results;
 	}
 	
-	@Transactional
 	public Page<FormResponse> listMyForm(Pageable pageable){
 		ZAccount me = (ZAccount) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
 		System.out.println("me: "+me);
@@ -128,49 +120,14 @@ public class FormDetailsService {
                 .collect(Collectors.toList());
 		
 		return new PageImpl<>(formResponses, pageable, forms.getTotalElements());
-//		List<Form> forms = formRepository.findByCreatorId(me.getId());
-//		log.info("Form size: {}" , forms.size());
-//		System.out.println("Form size:" + forms.size());
-//		for (Form form: forms) {
-////			FormData fd = form.getFormData();
-//			FormResponse formDetails = null;
-//			
-////			System.out.println("Form No:" + form.getFormNumber());
-////			System.out.println("Form Type Name:" + form.getConfigFormType().getName());
-////			System.out.println("Form Description:" + form.getDescription());
-////			System.out.println("Form Data:" + form.getFormData());
-//			String workflowName = "";
-//			String stepName = "";
-//			if (form.getCWorkflow() != null) {
-//				
-//				workflowName = form.getCWorkflow().getName();
-//				stepName = form.getCurrStep().getStepName();
-//			}
-//			
-//			formDetails = new FormResponse(form.getFId(), form.getFormNumber(), form.getConfigFormType().getCfId(), form.getConfigFormType().getName(), form.getDescription(), null, workflowName, stepName, form.getCreator().getId(), form.getCreateTime());
-//
-////			System.out.println("Form detail:"+form.getFormData());
-//			results.add(formDetails);
-//		}
-//		
-//		
-//		return results;
 	}
 	
-	@Transactional
 	public List<FormResponse> listAllForm(){
 		List<FormResponse> results= new ArrayList<FormResponse>();		
 		List<Form> forms = formRepository.findAll(Sort.by("createTime").descending());
 		log.info("Form size: {}" , forms.size());
-//		System.out.println("Form size:" + forms.size());
 		for (Form form: forms) {
-//			FormData fd = form.getFormData();
 			FormResponse formDetails = null;
-			
-//			System.out.println("Form No:" + form.getFormNumber());
-//			System.out.println("Form Type Name:" + form.getConfigFormType().getName());
-//			System.out.println("Form Description:" + form.getDescription());
-//			System.out.println("Form Data:" + form.getFormData());
 			String workflowName = "";
 			String stepName = "";
 			if (form.getCWorkflow() != null) {
@@ -180,49 +137,19 @@ public class FormDetailsService {
 			}
 			
 			formDetails = new FormResponse(form.getFId(), form.getFormNumber(), form.getConfigFormType().getCfId(), form.getConfigFormType().getName(), form.getDescription(), null, workflowName, stepName, form.getCreator().getId(), form.getCreateTime());
-
-//			System.out.println("Form detail:"+form.getFormData());
 			results.add(formDetails);
 		}
 		return results;
 	}
 	
-	@Transactional
 	public Page<FormResponse> listAllForm(Pageable pageable){
-//		List<FormResponse> results= new ArrayList<FormResponse>();		
 		Page<Form> forms = formRepository.findAll(pageable);
 		List<FormResponse> formResponses = forms.getContent().stream()
                 .map(FormResponse::new)
                 .collect(Collectors.toList());
-		
-//		log.info("Form page size: {}" , forms.getSize());
-//		System.out.println("Form size:" + forms.size());
-//		for (Form form: forms) {
-//			FormData fd = form.getFormData();
-//			FormResponse formDetails = null;
-			
-//			System.out.println("Form No:" + form.getFormNumber());
-//			System.out.println("Form Type Name:" + form.getConfigFormType().getName());
-//			System.out.println("Form Description:" + form.getDescription());
-//			System.out.println("Form Data:" + form.getFormData());
-//			String workflowName = "";
-//			String stepName = "";
-//			if (form.getCWorkflow() != null) {
-//				
-//				workflowName = form.getCWorkflow().getName();
-//				stepName = form.getCurrStep().getStepName();
-//			}
-			
-//			formDetails = new FormResponse(form);
-
-//			System.out.println("Form detail:"+form.getFormData());
-//			results.add(formDetails);
-//		}
-//		return results;
 		return new PageImpl<>(formResponses, pageable, forms.getTotalElements());
 	}
 	
-	@Transactional
 	public List<FormResponse> listByFormTypeId(Long formTypeId){
 		List<FormResponse> results= new ArrayList<FormResponse>();		
 		ConfigFormType configFormType =  configFormTypeRepository.getReferenceById(formTypeId);
@@ -230,7 +157,6 @@ public class FormDetailsService {
 		List<Form> forms = formRepository.findByConfigFormType(configFormType);
 		
 		log.info("Form size: {}" , forms.size());
-//		System.out.println("Form size:" + forms.size());
 		for (Form form: forms) {
 			FormResponse formDetails = null;
 
@@ -243,14 +169,19 @@ public class FormDetailsService {
 			}
 			
 			formDetails = new FormResponse(form.getFId(), form.getFormNumber(), form.getConfigFormType().getCfId(), form.getConfigFormType().getName(), form.getDescription(), null, workflowName, stepName, form.getCreator().getId(), form.getCreateTime());
-
-//			System.out.println("Form detail:"+form.getFormData());
 			results.add(formDetails);
 		}
 		return results;
 	}
 	
-	@Transactional
+	public Page<FormResponse> quickSearch(String keyword, Pageable pageable){
+		Page<Form> forms = formRepository.findByFormNumberContainingIgnoreCaseOrDescriptionContainingIgnoreCase(keyword, keyword, pageable);
+		List<FormResponse> formResponses = forms.getContent().stream()
+                .map(FormResponse::new)
+                .collect(Collectors.toList());
+		return new PageImpl<>(formResponses, pageable, forms.getTotalElements());
+	}
+	
 	public Page<FormResponse> listByFormTypeId(Long formTypeId, Pageable pageable){
 		List<FormResponse> results= new ArrayList<FormResponse>();		
 		ConfigFormType configFormType =  configFormTypeRepository.getReferenceById(formTypeId);
@@ -259,24 +190,6 @@ public class FormDetailsService {
 		List<FormResponse> formResponses = forms.getContent().stream()
                 .map(FormResponse::new)
                 .collect(Collectors.toList());
-//		log.info("Form size: {}" , forms.size());
-//		System.out.println("Form size:" + forms.size());
-//		for (Form form: forms) {
-//			FormResponse formDetails = null;
-//
-//			String workflowName = "";
-//			String stepName = "";
-//			if (form.getCWorkflow() != null) {
-//				
-//				workflowName = form.getCWorkflow().getName();
-//				stepName = form.getCurrStep().getStepName();
-//			}
-//			
-//			formDetails = new FormResponse(form.getFId(), form.getFormNumber(), form.getConfigFormType().getCfId(), form.getConfigFormType().getName(), form.getDescription(), null, workflowName, stepName, form.getCreator().getId(), form.getCreateTime());
-//
-////			System.out.println("Form detail:"+form.getFormData());
-//			results.add(formDetails);
-//		}
 		return new PageImpl<>(formResponses, pageable, forms.getTotalElements());
 	}
 	
@@ -287,25 +200,127 @@ public class FormDetailsService {
 	}
 	
 	@Transactional
+    public void postUpdate(Form form) {
+		Map<String, Object[]> differences = new HashMap<>();
+        
+        BeanWrapper oldBean = new BeanWrapperImpl(form.getOldData());
+        BeanWrapper newBean = new BeanWrapperImpl(form);
+        PropertyDescriptor properties[] = BeanUtils.getPropertyDescriptors(Form.class);
+        
+        for (PropertyDescriptor property : properties) {
+        	String propertyName = property.getName();
+            
+        	Object value1 = oldBean.getPropertyValue(propertyName);
+            Object value2 = newBean.getPropertyValue(propertyName);
+
+            if ((value1 != null && !value1.equals(value2)) || (value1 == null && value2 != null)) {
+                List<String> excepts = new ArrayList<>();
+                excepts.add("oldData");
+                excepts.add("formData");
+                excepts.add("actions");
+                excepts.add("updateTime");
+                excepts.add("currStep");
+                if (!excepts.contains(propertyName)) {
+                	differences.put(propertyName, new Object[]{value1, value2});
+                }
+            }
+        }
+        
+        if (differences.size()>0) {
+        	StringBuffer sb = new StringBuffer();
+        	differences.forEach((field, values) -> {
+        		sb.append(field + ": " + values[0] + " -> " + values[1] + " ");
+            });
+        	log.info("Modify details:{}", sb.toString());
+        	Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        	ZAccount user = null;
+    		if (authentication != null && authentication.isAuthenticated()) {
+    			user = (ZAccount) authentication.getPrincipal();
+    		}
+    		   	
+        	FormHistory history = FormHistory.builder()
+        			.detail(sb.toString())
+        			.form(form)
+        			.accountName(user.getUsername())
+        			.stepName(form.getCurrStep().getStepName())
+        			.type(ChangeTypeEnum.Modify)
+        			.build();
+
+        	formHistoryRepository.save(history);
+        }
+    }
+    
+    @Transactional
+    public void postUpdate(FormData formData) {
+		Map<String, Object[]> differences = new HashMap<>();
+        
+        BeanWrapper oldBean = new BeanWrapperImpl(formData.getOldData());
+        BeanWrapper newBean = new BeanWrapperImpl(formData);
+        PropertyDescriptor properties[] = BeanUtils.getPropertyDescriptors(FormData.class);
+        
+        for (PropertyDescriptor property : properties) {
+        	String propertyName = property.getName();
+            
+        	Object value1 = oldBean.getPropertyValue(propertyName);
+            Object value2 = newBean.getPropertyValue(propertyName);
+
+            if ((value1 != null && !value1.equals(value2)) || (value1 == null && value2 != null)) {
+                List<String> excepts = new ArrayList<>();
+                excepts.add("oldData");
+                excepts.add("form");
+                excepts.add("updateTime");
+                if (!excepts.contains(propertyName)) {
+                	differences.put(propertyName, new Object[]{value1, value2});
+                }
+            }
+        }
+        
+        if (differences.size()>0) {
+        	StringBuffer sb = new StringBuffer();
+        	differences.forEach((field, values) -> {
+        		sb.append(field + ": " + values[0] + " -> " + values[1] + " ");
+            });
+        	log.info("Modify details:{}", sb.toString());
+        	Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        	ZAccount user = null;
+    		if (authentication != null && authentication.isAuthenticated()) {
+    			user = (ZAccount) authentication.getPrincipal();
+    		}
+    		Form form = formData.getForm();
+        	
+        	FormHistory history = FormHistory.builder()
+        			.detail(sb.toString())
+        			.form(form)
+        			.accountName(user.getUsername())
+        			.stepName(form.getCurrStep().getStepName())
+        			.type(ChangeTypeEnum.Modify)
+        			.build();
+        	
+//        	applicationEventPublisher.publishEvent(new FormUpdateEvent(history));
+        	formHistoryRepository.save(history);
+        }
+    }
+	
+	@Transactional
 	public FormData updateFormData(Long id, FormDataRequest formDataReq) {
-//		boolean initActions = false;
+
 		Form form = formRepository.getReferenceById(id);
 		form.setFormNumber(formDataReq.getFormNumber());
 		form.setDescription(formDataReq.getDescription());
 		ConfigWorkflow cWorkflow = configWorkflowRepository.getReferenceById(formDataReq.getWorkflow());
-//		if ((form.getCWorkflow() == null) && (formDataReq.getWorkflow() != null)) {
-//			initActions = true;
-//		}
+
 		form.setCWorkflow(cWorkflow);
 		Form updatedForm = formRepository.save(form);
-//		FormData formData = form.getFormData();
+		postUpdate(updatedForm);
+
 		FormData formData = formDataConverter.requestToEntity(formDataReq);
 		formData.setForm(updatedForm);
 		if(updatedForm.getFormData() != null)
 			formData.setFdId(updatedForm.getFormData().getFdId());
 		FormData updatedformData = formDataRepository.save(formData);
-//		if (initActions)
-//			actionService.initActions(updatedForm);
+		
+		postUpdate(updatedformData);
+
 		return updatedformData;
 	}
 	
@@ -315,14 +330,9 @@ public class FormDetailsService {
 		FormData formData = form.getFormData();
 		
 		MyReflectionUtils.mapNonNullFields(formDataReq, formData);
-		
-		
-//		formData.setForm(updatedForm);
-//		if(updatedForm.getFormData() != null)
-//			formData.setFdId(updatedForm.getFormData().getFdId());
+
 		FormData updatedformData = formDataRepository.save(formData);
-//		if (initActions)
-//			actionService.initActions(updatedForm);
+
 		return updatedformData;
 	}
 	
@@ -330,16 +340,6 @@ public class FormDetailsService {
 	public Form createForm(Long formTypeId, FormRequest formReq) {
 		Form form = formConverter.requestToEntity(formReq);
 		FormData fromData = new FormData();
-//		ZAccount creator = new ZAccount();
-//		Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-//        if(authentication == null || !authentication.isAuthenticated()) {
-//            throw new InternalAuthenticationServiceException("Can get current user");
-//        }
-//        log.info("ZAccount: {}", authentication.getPrincipal());
-//        System.out.println(authentication.getPrincipal());
-//        creator = (ZAccount) authentication.getPrincipal();
-//        Optional<ZAccount> oCreator = userRepository.findByUsername(userName);
-//       	creator = oCreator.get();
 		
 		fromData = formDataRepository.save(fromData);
 		ConfigFormType formType = configFormTypeRepository.getReferenceById(formTypeId);
@@ -359,6 +359,22 @@ public class FormDetailsService {
 //		form.setCreator(creator);
 		form = formRepository.save(form);
 //		actionService.initActions(form);
+		
+		Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+    	ZAccount user = null;
+		if (authentication != null && authentication.isAuthenticated()) {
+			user = (ZAccount) authentication.getPrincipal();
+		}
+		
+		FormHistory history = FormHistory.builder()
+    			.detail("Create form: "+formNumber)
+    			.form(form)
+    			.accountName(user.getUsername())
+    			.stepName(currStep.getStepName())
+    			.type(ChangeTypeEnum.Create)
+    			.build();
+    	formHistoryRepository.save(history);
+		
 		return form;
 	}
 	
@@ -366,25 +382,6 @@ public class FormDetailsService {
 		List formFields = Arrays.asList("formNumber", "description");
 		List<Form> forms = new ArrayList<>();
 		List<ConfigCriteriaItem> criteriaItems = criteriaNode.getCriteriaItems();
-//		forms = formRepository.findAll()
-//		Specification<Form> sf = 
-//		(form, query, cb) -> {
-//            Join<Form, FormData> formData = form.join("formData");
-//            List<Predicate> predicates = new ArrayList<>();
-//    		for (ConfigCriteriaItem criteriaItem: criteriaItems) {
-//    			if (formFields.contains(criteriaItem.getField())){
-//	    			if (criteriaItem.getOperator().equals(OperatorEnum.EqualTo)) {
-//	    				predicates.add( cb.equal( form.get(criteriaItem.getField()), criteriaItem.getValue()));
-//	    			}
-//    			}
-//    			else {
-//    				if (criteriaItem.getOperator().equals(OperatorEnum.EqualTo)) {
-//	    				predicates.add( cb.equal( formData.get(criteriaItem.getField()), criteriaItem.getValue()));
-//	    			}
-//    			}
-//    		}
-//            return cb.and((Predicate[]) predicates.toArray());
-//        };
         
         forms = formRepository.findAll((form, query, cb) -> {
         	if ((criteriaItems == null) || criteriaItems.size()==0) {
@@ -423,67 +420,4 @@ public class FormDetailsService {
 	public ConfigStep getFirstStep(Form form) {
 		return form.getCWorkflow().getCSteps().get(0);
 	}
-
-//	public void initActions(Form form, int iStart) {
-//		ConfigWorkflow configWorkflow = form.getCWorkflow();
-//		List<ConfigStep> steps = configWorkflow.getCSteps();
-//		
-//		for (int i = iStart ; i < steps.size() ; i++) {
-//			ConfigStep step = steps.get(i);
-////		steps.forEach((step)->{
-//			System.out.println("Step:"+step.getStepName());
-//			List<Object> approverUserIds= step.getApprovers();
-//			if (approverUserIds !=null) {
-//				approverUserIds.forEach((userId)->{ 
-////					Long lUserId = Long.valueOf(userId.toString());
-//					ZAccount creator = new ZAccount();
-//					Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-//			        if(authentication == null || !authentication.isAuthenticated()) {
-//			            throw new InternalAuthenticationServiceException("Can't get current user");
-//			        }
-//			        System.out.println(authentication.getPrincipal());
-//			        String userName = (String) authentication.getPrincipal();
-//			        Optional<ZAccount> oCreator = userRepository.findByUsername(userName);
-//			       	creator = oCreator.get();
-//					
-//					ZAccount user = userRepository.getReferenceById(userId.toString());
-//					System.out.println(" Approve User:"+ user);
-//					Action action = new Action();
-//					action.setConfigStep(step);
-//					action.setForm(form);
-//					action.setType("A");
-//					action.setNoticeFlag(false);
-//					action.setUser(user);
-//					action.setCreator(creator);
-//					actionRepository.save(action);
-//				});
-//			}
-//			List<Object> notifyUserIds= step.getNotifiers();
-//			if (notifyUserIds!=null) {
-//				notifyUserIds.forEach((userId)->{ 
-////					Long lUserId = Long.valueOf(userId.toString());
-//					ZAccount creator = new ZAccount();
-//					Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-//			        if(authentication == null || !authentication.isAuthenticated()) {
-//			            throw new InternalAuthenticationServiceException("Can get current user");
-//			        }
-//			        System.out.println(authentication.getPrincipal());
-//			        String userName = (String) authentication.getPrincipal();
-//			        Optional<ZAccount> oCreator = userRepository.findByUsername(userName);
-//			       	creator = oCreator.get();
-//					
-//					ZAccount user = userRepository.getReferenceById(userId.toString());
-//					System.out.println(" Notify User:"+ user);
-//					Action action = new Action();
-//					action.setConfigStep(step);
-//					action.setForm(form);
-//					action.setType("N");
-//					action.setNoticeFlag(false);
-//					action.setUser(user);
-//					action.setCreator(creator);
-//					actionRepository.save(action);
-//				});
-//			}
-//		};
-//	}
 }

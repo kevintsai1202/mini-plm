@@ -13,6 +13,7 @@ import org.springframework.transaction.annotation.Transactional;
 import com.miniplm.entity.ConfigCriteriaItem;
 import com.miniplm.entity.ConfigCriteriaNode;
 import com.miniplm.entity.ConfigFormField;
+import com.miniplm.entity.ConfigListItem;
 import com.miniplm.entity.ConfigStep;
 import com.miniplm.entity.ConfigStepCriteria;
 import com.miniplm.entity.Form;
@@ -64,14 +65,11 @@ class MiniPlmApplicationTests {
 	@Autowired
 	AuthorizationService authorizationService;
 	
-//	@Test
-//	@Transactional
-//	@Rollback(false)
-//	public void test2() {
-//		ConfigStep step = configStepRepository.getReferenceById(5430L);
-//		
-//		System.out.println(step);
-//	}
+	@Test
+	public void test1() {
+		List<ConfigListItem> lists= queryService.getListItemsWithNativeQuery("select key, value from MP_CONFIG_LISTITEM WHERE list_node_id = 5424");
+		System.out.println(lists);
+	}
 //	
 //	@Test
 //	@Transactional

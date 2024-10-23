@@ -53,5 +53,7 @@ public class MenuResponse{
 	
 	private Menu parent;
 	
+	private Long configCriteriaNodeId;
+	
     private int orderBy;
 }

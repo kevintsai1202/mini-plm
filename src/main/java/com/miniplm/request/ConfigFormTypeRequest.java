@@ -10,5 +10,6 @@ public class ConfigFormTypeRequest {
 	private String name;
 	private String description;
 	private List<Long> cfnIds;
+	private Set<Long> ctIds;
 	private Long cwId;
 }

@@ -1,7 +1,6 @@
 package com.miniplm.entity;
 
 
-import java.util.LinkedList;
 import java.util.List;
 
 import javax.persistence.CascadeType;
@@ -48,10 +47,6 @@ import lombok.ToString;
 @Where(clause = "enabled = true")
 @SequenceGenerator(name="MP_SEQUENCE_GENERATOR", sequenceName="MP_SEQ", initialValue=1, allocationSize=1)
 public class ConfigStep extends BaseEntity{
-	public enum Status {
-		wait, process, finish, error 
-	}
-
 //    @GeneratedValue(strategy=GenerationType.IDENTITY)
 	@Id
 	@GeneratedValue(strategy=GenerationType.SEQUENCE, generator="MP_SEQUENCE_GENERATOR")
@@ -66,11 +61,11 @@ public class ConfigStep extends BaseEntity{
     
     @Convert(converter = ConverterListJson.class)
     @Column(name = "APPROVERS", length = 2000)
-    private LinkedList<Object> approvers = new LinkedList<>();
+    private List<String> approvers;
     
     @Convert(converter = ConverterListJson.class)
     @Column(name = "NOTIFIERS", length = 2000)
-    private LinkedList<Object> notifiers = new LinkedList<>();
+    private List<String> notifiers;
     
 //    @Column(name = "STATUS", length = 10)
 //    private String status; // wait process finish error
@@ -94,10 +89,15 @@ public class ConfigStep extends BaseEntity{
     private int orderBy;
     
     @JsonIgnore
-    @OneToMany(mappedBy = "cStep" , cascade = CascadeType.ALL, fetch = FetchType.EAGER)
+    @OneToMany(mappedBy = "cStep" , fetch = FetchType.EAGER)
 	@OrderBy("ORDER_BY")
 	@Fetch(FetchMode.SUBSELECT)
     private List<ConfigStepCriteria> cStepCriterias;
+    
+//    @OneToMany(mappedBy = "step" , cascade = CascadeType.MERGE, fetch = FetchType.LAZY)
+//    @Fetch(FetchMode.SUBSELECT)
+//    @JsonIgnore
+//    private List<FormHistory> historys;
     
     @Override
     public int hashCode() {

@@ -24,7 +24,9 @@ public class ActionResponse implements Serializable {
 	private String formTypeName;
 	private String formDescription;
 	private String username;
+	private String signoffUsername;
 	private Boolean finishFlag;
+	private Boolean taFlag;
 //	private List<FormExtraData> formExtraDatas;
 	public ActionResponse(Action action) {
 		this.aId = action.getAId();
@@ -35,7 +37,10 @@ public class ActionResponse implements Serializable {
 		this.formTypeName = action.getForm().getConfigFormType().getName();
 		this.formDescription = action.getForm().getDescription();
 		this.username = action.getUser().getUsername();
+		if (action.getSignoffUser() != null)
+			this.signoffUsername = action.getSignoffUser().getUsername();
 		this.finishFlag = action.getFinishFlag();
+		this.taFlag = false;
 	}
 }
 

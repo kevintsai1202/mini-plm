@@ -1,6 +1,6 @@
 package com.miniplm.response;
 
-import java.util.LinkedList;
+import java.util.List;
 
 import com.miniplm.entity.ConfigStepCriteria;
 
@@ -13,9 +13,9 @@ public class ConfigStepCriteriaResponse {
 	private Long cnId;
 	private Long cfId;
 	private Integer orderBy;
-	private LinkedList<Object> approvers;
-	private LinkedList<Object> notifiers;
-	private LinkedList<Object> requiredFields;
+	private List<String> approvers;
+	private List<String> notifiers;
+	private List<String> requiredFields;
 	
 	public ConfigStepCriteriaResponse(ConfigStepCriteria newData) {
 		this.cscId = newData.getCscId();

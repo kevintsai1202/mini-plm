@@ -70,6 +70,8 @@ public class FileController {
 //		System.out.println("上傳2");
 		try {
 //			fileStorageService.save(formId, file);
+			
+			
 			return ResponseEntity.ok(fileStorageService.save(formId, file));
 		} catch (Exception e) {
 			return ResponseEntity.badRequest().build();

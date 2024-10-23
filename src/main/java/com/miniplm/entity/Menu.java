@@ -45,6 +45,7 @@ import lombok.ToString;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
+@ToString
 @Table(name = "MP_MENU")
 @SQLDelete(sql = "UPDATE MP_MENU SET enabled= 0 WHERE id=?")
 @Where(clause = "enabled = true")
@@ -67,6 +68,10 @@ public class Menu extends BaseEntity implements Comparable<Menu> {
 	
 	@Column(name = "LINK", length = 100)
 	private String link;
+	
+	@ManyToOne(cascade = CascadeType.MERGE, fetch = FetchType.EAGER)
+	@JoinColumn(name = "CRITERIA_NODE_ID", referencedColumnName = "ID")
+	private ConfigCriteriaNode configCriteriaNode;
 	
 	@Column(name = "ICON")
 	private String icon;

@@ -1,6 +1,5 @@
 package com.miniplm.entity;
 
-import java.util.LinkedList;
 import java.util.List;
 
 import javax.persistence.CascadeType;
@@ -24,13 +23,15 @@ import org.hibernate.annotations.FetchMode;
 import org.hibernate.annotations.Proxy;
 import org.hibernate.annotations.SQLDelete;
 import org.hibernate.annotations.Where;
+import org.springframework.beans.factory.annotation.Autowired;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.miniplm.repository.ConfigFormTypeRepository;
+import com.miniplm.request.ConfigWorkflowRequest;
 
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import lombok.ToString;
 
 @Proxy(lazy = false)
 @Setter
@@ -42,6 +43,7 @@ import lombok.ToString;
 @Where(clause = "enabled = true")
 @SequenceGenerator(name="MP_SEQUENCE_GENERATOR", sequenceName="MP_SEQ", initialValue=1, allocationSize=1)
 public class ConfigWorkflow extends BaseEntity{
+
 //    @GeneratedValue(strategy=GenerationType.IDENTITY)
 	@Id
 	@GeneratedValue(strategy=GenerationType.SEQUENCE, generator="MP_SEQUENCE_GENERATOR")
@@ -64,6 +66,8 @@ public class ConfigWorkflow extends BaseEntity{
     
     @JsonIgnore
     @OneToOne(mappedBy = "configWorkflow")
+//    @OneToOne(cascade = CascadeType.MERGE, fetch = FetchType.EAGER)
+//    @JoinColumn(name = "CONFIG_FORMTYPE_ID", referencedColumnName = "ID")
     private ConfigFormType cFormType;
     
     @Override

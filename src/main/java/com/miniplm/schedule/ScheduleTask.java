@@ -42,6 +42,7 @@ public class ScheduleTask {
 	public void checkAndSendEmails() throws MessagingException {
 		processApproveActions();
 		processNoticeActions();
+		processReturnActions();
 	}
 	
 	
@@ -109,6 +110,39 @@ public class ScheduleTask {
 					);
 			noticeAction.setNoticeFlag(true);
 			actionRepository.save(noticeAction);
+		}
+	}
+	
+	private void processReturnActions() throws MessagingException {
+		//notice
+		List<Action> returnActions = actionRepository.findByTypeAndNoticeFlagAndCanNoticeFlag("R", false, true);
+//		System.out.println(noticeActions);
+		for (Action returnAction: returnActions) {
+			String formNumber = returnAction.getForm().getFormNumber();
+			String formDesc = returnAction.getForm().getDescription();
+			String formStep = returnAction.getForm().getCurrStep().getStepName();
+			String formLink = "<a href='"+serverUrl+"/user/formnumber/"+formNumber+"/read"+"'>"+serverUrl+"/user/formnumber/"+formNumber+"/read"+"</a>";
+			String serverLink = serverUrl;
+			String toEmail = returnAction.getUser().getEmail();
+			log.info("email: {}", toEmail);
+//			System.out.println("email:"+toEmail);
+			log.info("User: {}", returnAction.getUser());
+//			System.out.println("User:"+noticeAction.getUser());
+			
+			
+			templateMap.put(TemplateWordEnum.formnumber.name() , formNumber);
+			templateMap.put(TemplateWordEnum.formdesc.name(), formDesc);
+			templateMap.put(TemplateWordEnum.formstep.name(), formStep);
+			templateMap.put(TemplateWordEnum.formlink.name() , formLink);
+			templateMap.put(TemplateWordEnum.serverlink.name() , serverLink);
+			
+			mailService.sendEmail(toEmail,
+					systemSettingRepository.findByName("Return subject template").getValue(), 
+					systemSettingRepository.findByName("Return body template").getValue(),
+					templateMap
+					);
+			returnAction.setNoticeFlag(true);
+			actionRepository.save(returnAction);
 		}
 	}
 }

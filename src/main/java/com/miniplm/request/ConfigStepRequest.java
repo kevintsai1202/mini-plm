@@ -49,10 +49,10 @@ public class ConfigStepRequest{
 	private String description;
     
     @Convert(converter = ConverterListJson.class)
-    private LinkedList<Object> approvers = new LinkedList<>();
+    private List<String> approvers = new LinkedList<>();
     
     @Convert(converter = ConverterListJson.class)
-    private LinkedList<Object> notifiers = new LinkedList<>();
+    private List<String> notifiers = new LinkedList<>();
     
     private Long rejectStepId;
     

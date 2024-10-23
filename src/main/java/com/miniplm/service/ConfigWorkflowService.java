@@ -10,16 +10,20 @@ import org.springframework.cache.annotation.Cacheable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
+import com.miniplm.convert.ConfigWorkflowConverter;
 import com.miniplm.entity.ConfigCriteriaNode;
+import com.miniplm.entity.ConfigFormType;
 import com.miniplm.entity.ConfigStep;
 import com.miniplm.entity.ConfigStepCriteria;
 import com.miniplm.entity.ConfigWorkflow;
 import com.miniplm.entity.Form;
 import com.miniplm.exception.BusinessException;
 import com.miniplm.repository.ConfigCriteriaNodeRepository;
+import com.miniplm.repository.ConfigFormTypeRepository;
 import com.miniplm.repository.ConfigStepCriteriaRepository;
 import com.miniplm.repository.ConfigStepRepository;
 import com.miniplm.repository.ConfigWorkflowRepository;
+import com.miniplm.request.ConfigWorkflowRequest;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -29,12 +33,36 @@ public class ConfigWorkflowService {
 	@Resource
 	ConfigWorkflowRepository configWorkflowRepository;
 	@Resource
+	ConfigFormTypeRepository configFormTypeRepository;
+	@Resource
 	ConfigStepRepository configStepRepository;
 	@Resource
 	ConfigStepCriteriaRepository configStepCriteriaRepository;
 	@Resource
 	ConfigCriteriaNodeRepository configCriteriaNodeRepository;
 	
+	
+	@Transactional
+	public ConfigWorkflow createWorkflow(ConfigWorkflowRequest cwfReq) {
+		ConfigWorkflow cWorkflow = ConfigWorkflowConverter.INSTANCT.requestToEntity(cwfReq);
+		cWorkflow = configWorkflowRepository.save(cWorkflow);
+		ConfigFormType formType = configFormTypeRepository.getReferenceById(cwfReq.getCfId());
+		formType.setConfigWorkflow(cWorkflow);
+		return cWorkflow;
+	}
+	
+	@Transactional
+	public ConfigWorkflow updateWorkflow(Long cwfId, ConfigWorkflowRequest cwfReq) {
+		ConfigWorkflow dbWorkflow = configWorkflowRepository.getReferenceById(cwfId);
+		dbWorkflow.setDescription(cwfReq.getDescription());
+		dbWorkflow.setName(cwfReq.getName());
+		dbWorkflow.setStatus(cwfReq.getStatus());
+		dbWorkflow = configWorkflowRepository.save(dbWorkflow);
+		ConfigFormType configFormType = configFormTypeRepository.getReferenceById(cwfReq.getCfId());
+		configFormType.setConfigWorkflow(dbWorkflow);
+		configFormTypeRepository.save(configFormType);
+		return dbWorkflow;
+	}
 	
 	@Transactional
 	public ConfigStep createWorkflowStep(Long workflowId, ConfigStep cStep) {

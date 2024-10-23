@@ -5,6 +5,7 @@ import java.util.Arrays;
 import java.util.List;
 
 import com.miniplm.entity.ConfigFormField;
+import com.miniplm.entity.ConfigTableColumn;
 import com.miniplm.response.UserFormFieldResponse;
 
 import lombok.AllArgsConstructor;
@@ -36,6 +37,15 @@ public class Rules {
 		}
 		if ((field.getPattern() != null) && (field.getPattern().length() > 0)) {
 			rules.add(new RulePatten(field.getPattern(), "輸入內容不符合:"+field.getPatternMsg()));
+		}
+	}
+	
+	public Rules(ConfigTableColumn column) {
+		if (column.getRequired()) {
+			rules.add(new RuleRequired());
+		}
+		if ((column.getPattern() != null) && (column.getPattern().length() > 0)) {
+			rules.add(new RulePatten(column.getPattern(), "輸入內容不符合:"+column.getPatternMsg()));
 		}
 	}
 	

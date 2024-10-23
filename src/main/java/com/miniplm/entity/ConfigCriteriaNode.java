@@ -39,7 +39,7 @@ import lombok.ToString;
 @AllArgsConstructor
 @Entity
 @Builder
-@ToString(exclude = {"configStep", "configFormType"})
+@ToString(exclude = {"configFormType"})
 @Table(name = "MP_CONFIG_CRITERIA_NODE")
 @SQLDelete(sql = "UPDATE MP_CONFIG_CRITERIA_NODE SET enabled=0 WHERE id=?")
 @Where(clause = "enabled = true")

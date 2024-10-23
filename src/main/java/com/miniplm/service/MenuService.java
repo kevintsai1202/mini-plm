@@ -101,6 +101,7 @@ public class MenuService {
 		savedMenu.setMenuType(menu.getMenuType());
 		savedMenu.setOrderBy(menu.getOrderBy());
 		savedMenu.setParent(menu.getParent());
+		savedMenu.setConfigCriteriaNode(menu.getConfigCriteriaNode());
 		
 		return menuRepository.save(savedMenu);
 	}

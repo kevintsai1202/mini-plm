@@ -9,7 +9,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 @Data
-public class FormDataResponse {
+public class FormDataResponse1 {
 	private String text01;
 	private String text02;
 	private String text03;

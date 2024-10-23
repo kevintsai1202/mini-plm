@@ -1,12 +1,8 @@
 package com.miniplm.controller;
 
-import java.util.Arrays;
 import java.util.HashSet;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 import javax.annotation.Resource;
 import javax.persistence.EntityNotFoundException;
@@ -16,7 +12,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -28,19 +23,21 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.miniplm.entity.ConfigFormField;
 import com.miniplm.entity.ConfigFormNumber;
 import com.miniplm.entity.ConfigFormType;
+import com.miniplm.entity.ConfigListItem;
 import com.miniplm.entity.ConfigStep;
+import com.miniplm.entity.ConfigTableHeader;
 import com.miniplm.entity.ConfigWorkflow;
-import com.miniplm.exception.ConfigAlreadyUsedException;
 import com.miniplm.repository.ConfigFormNumberRepository;
 import com.miniplm.repository.ConfigFormTypeRepository;
+import com.miniplm.repository.ConfigTableHeaderRepository;
 import com.miniplm.repository.ConfigWorkflowRepository;
 import com.miniplm.request.ConfigFormTypeRequest;
 import com.miniplm.response.ConfigFormFieldEnum;
 import com.miniplm.response.TableResultResponse;
 import com.miniplm.response.UserFormFieldResponse;
+import com.miniplm.service.ConfigFormFieldService;
 import com.miniplm.service.ConfigFormTypeService;
 
 import io.swagger.v3.oas.annotations.Operation;
@@ -62,14 +59,21 @@ public class ConfigFormTypeController {
 	@Resource
 	ConfigWorkflowRepository configWorkflowRepository;
 	
+	@Resource
+	ConfigTableHeaderRepository configTableHeaderRepository;
+	
 	@Autowired
 	ConfigFormTypeService configFormTypeService;
+	
+	@Autowired
+	ConfigFormFieldService configFormFieldService;
 	
 	@GetMapping
 //	@Transactional
 	public ResponseEntity<TableResultResponse<ConfigFormType>> list() {
 		List<ConfigFormType> formTypies =configFormTypeRepository.findAll(Sort.by("cfId"));
 //		List<ConfigFormType> formTypies =configFormTypeRepository.listAllNormalFormTypies();
+		log.info("formTypies:{}", formTypies);
 		return ResponseEntity.ok(new TableResultResponse<ConfigFormType>(formTypies));
 	}
 	
@@ -78,6 +82,13 @@ public class ConfigFormTypeController {
 //		List<ConfigFormType> formTypies =configFormTypeRepository.findAll(Sort.by("cfId"));
 		List<ConfigFormType> formTypies =configFormTypeRepository.listAllNormalFormTypies();
 		return ResponseEntity.ok(new TableResultResponse<ConfigFormType>(formTypies));
+	}
+	
+	@GetMapping("/noworkflowlist")
+	public ResponseEntity<List<ConfigFormType>> noworkflowlist() {
+//		List<ConfigFormType> formTypies =configFormTypeRepository.findAll(Sort.by("cfId"));
+		List<ConfigFormType> formTypies =configFormTypeRepository.listAllFormTypiesWorkflowIsNull();
+		return ResponseEntity.ok(formTypies);
 	}
 	
 	@GetMapping("/{id}")
@@ -97,6 +108,25 @@ public class ConfigFormTypeController {
 	public ResponseEntity<List<UserFormFieldResponse>> getFormVisibleFields(@PathVariable("formTypeId") Long formTypeId) {
 //		ConfigFormType formType = configFormTypeRepository.getReferenceById(id);
 		return ResponseEntity.ok(configFormTypeService.getFormTypeVisibleFields(formTypeId));
+//		return ResponseEntity.ok(configFormTypeService.getFormTypeFieldsEnum(formTypeId));
+//		return ResponseEntity.ok(configFormTypeService.getVisibleFields(formId));
+	}
+	
+	@GetMapping("/{formTypeId}/tables")
+	public ResponseEntity<Set<ConfigTableHeader>> getFormTables(@PathVariable("formTypeId") Long formTypeId) {
+//		ConfigFormType formType = configFormTypeRepository.getReferenceById(id);
+		return ResponseEntity.ok(configFormTypeService.getFormTypeAllTables(formTypeId));
+//		return ResponseEntity.ok(configFormTypeService.getFormTypeFieldsEnum(formTypeId));
+//		return ResponseEntity.ok(configFormTypeService.getVisibleFields(formId));
+	}
+	
+	@GetMapping("/{formTypeId}/fields/{fieldIndex}")
+	public ResponseEntity<List<ConfigListItem>> getFormFieldList(@PathVariable("formTypeId") Long formTypeId,@PathVariable("fieldIndex") String fieldIndex) {
+//		ConfigFormType formType = configFormTypeRepository.getReferenceById(id);
+		//TODO get field lists
+		
+		
+		return ResponseEntity.ok(configFormFieldService.getFieldListItems(formTypeId, fieldIndex));
 //		return ResponseEntity.ok(configFormTypeService.getFormTypeFieldsEnum(formTypeId));
 //		return ResponseEntity.ok(configFormTypeService.getVisibleFields(formId));
 	}
@@ -147,12 +177,22 @@ public class ConfigFormTypeController {
 		ConfigFormType newFormType = new ConfigFormType();
 		newFormType.setName(formTypeReq.getName());
 		newFormType.setDescription(formTypeReq.getDescription());
+		
+		if (formTypeReq.getCtIds() != null) {
+			Set<ConfigTableHeader> cTableHeaders = new HashSet<>();
+			for (Long ctId : formTypeReq.getCtIds()) {
+				cTableHeaders.add(configTableHeaderRepository.getReferenceById(ctId));
+			}
+			newFormType.setConfigTableHeaders(cTableHeaders);
+		}
 		newFormType = configFormTypeService.createFormType(newFormType);
 		//將多組FormNumber寫入FormType
-		for(Long cfnId:formTypeReq.getCfnIds()) {
-			ConfigFormNumber cfn = configFormNumberRepository.getReferenceById(cfnId);
-			cfn.setConfigFormType(newFormType);
-			configFormNumberRepository.save(cfn);
+		if (formTypeReq.getCfnIds() != null) {
+			for(Long cfnId:formTypeReq.getCfnIds()) {
+				ConfigFormNumber cfn = configFormNumberRepository.getReferenceById(cfnId);
+				cfn.setConfigFormType(newFormType);
+				configFormNumberRepository.save(cfn);
+			}
 		}
 		return ResponseEntity.ok(newFormType);
 	}
@@ -191,8 +231,13 @@ public class ConfigFormTypeController {
 		newFormType.setDescription(formTypeReq.getDescription());
 		newFormType.setName(formTypeReq.getName());
 //		newFormType.setConfigFormNumbers(null);
-		newFormType = configFormTypeRepository.save(newFormType);
+		Set<ConfigTableHeader> cTableHeaders = new HashSet<>();
+		for (Long ctId : formTypeReq.getCtIds()) {
+			cTableHeaders.add(configTableHeaderRepository.getReferenceById(ctId));
+		}
+		newFormType.setConfigTableHeaders(cTableHeaders);
 		
+		newFormType = configFormTypeRepository.save(newFormType);
 		//先將原先FormNumber清除
 		for(ConfigFormNumber cformNumber:oldFormType.getConfigFormNumbers()) {
 			log.info("clear auto number");

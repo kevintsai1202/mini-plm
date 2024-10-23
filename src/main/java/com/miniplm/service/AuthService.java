@@ -38,8 +38,8 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class AuthService {
     private final HttpServletRequest httpRequest;
-	private final AuthenticationManager authenticationManager;
-	private final UserRepository userRepository;
+//	private final AuthenticationManager authenticationManager;
+//	private final UserRepository userRepository;
 	private final JwtUtils jwtUtils;
 	private final UserService userService;
 	private final YmlData ymlData;
@@ -57,8 +57,16 @@ public class AuthService {
 		ZAccount zuser = null;
 
 		if ("ldap".equalsIgnoreCase(authenticateMethod)) {
-			ldapUser = ldapService.loginByLdap(request);
-			log.info("ldapUser: {}", ldapUser);
+			try {
+				ldapUser = ldapService.loginByLdap(request);
+				log.info("ldapUser: {}", ldapUser);
+			}catch(AuthenticationException e) {
+				zuser = (ZAccount) userService.loadUserByUsername(request.getUsername());
+				requestMd5Pwd = passwordEncoder.encode(request.getPassword());
+				if (!zuser.getPassword().equals(requestMd5Pwd)) {
+					throw new AuthenticationException("密碼錯誤");
+				}
+			}
 			zuser = (ZAccount) userService.loadUserByUsername(ldapUser.getLoginName());
 		} else { // db
 			zuser = (ZAccount) userService.loadUserByUsername(request.getUsername());

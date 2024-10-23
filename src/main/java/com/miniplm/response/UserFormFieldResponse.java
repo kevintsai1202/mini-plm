@@ -12,6 +12,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import com.miniplm.entity.ConfigFormField;
 import com.miniplm.entity.ConfigListItem;
 import com.miniplm.entity.ConfigListNode;
+import com.miniplm.entity.DataTypeEnum;
 import com.miniplm.formprops.Rules;
 import com.miniplm.service.AuthorizationService;
 
@@ -19,20 +20,26 @@ import lombok.Data;
 
 @Data
 public class UserFormFieldResponse implements Serializable{
+	private String id;
 	private String title;
 	private String dataIndex;
 	private String valueType;
 	private Boolean collapsible;
 	private Rules formItemProps;
+//	private Map colProps = new HashMap();
 	private Map fieldProps = new HashMap();
 	private int orderBy;
 	private Map valueEnum;
 	private List columns = new ArrayList();
 	
 	public UserFormFieldResponse(String groupName, String dataIndex) {
+		this.id = dataIndex;
 		this.title = groupName;
 		this.dataIndex = dataIndex;
 		this.valueType = "group";
+//		this.colProps.put("md", 12);
+//		this.colProps.put("xs", 24);
+		this.fieldProps.put("id", dataIndex);
 		this.fieldProps.put("collapsible", true);
 		this.fieldProps.put("style", 
 				new HashMap(){{
@@ -44,12 +51,13 @@ public class UserFormFieldResponse implements Serializable{
 			}});
 	}
 	
-	public UserFormFieldResponse(ConfigFormField cff, boolean stepRequired) {
+	public UserFormFieldResponse(ConfigFormField cff, List<ConfigListItem> cListItems, boolean stepRequired) {
 		this.title = cff.getFieldName();
 		this.dataIndex = cff.getDataIndex();
-		this.valueType = cff.getFieldType().equals("multilist")?"select":cff.getFieldType();
+		this.valueType = cff.getFieldType().equals(DataTypeEnum.multilist)?"select":cff.getFieldType().toString();
 		this.orderBy = cff.getOrderBy();
-		
+//		this.colProps.put("md", 12);
+//		this.colProps.put("xs", 24);
 		
 		if (stepRequired || cff.getRequired() || (cff.getPattern() != null)) {
 			this.formItemProps = new Rules(cff, stepRequired);
@@ -58,11 +66,13 @@ public class UserFormFieldResponse implements Serializable{
 		if (cff.getMultiple()) {
 			this.fieldProps.put("mode", "multiple");
 		}
-		if((cff.getConfigListNode() != null)) {
-			ConfigListNode listNode = cff.getConfigListNode();
-			List<ConfigListItem> listItems = listNode.getListItems();
+//		if((cff.getConfigListNode() != null)) {
+//			ConfigListNode listNode = cff.getConfigListNode();
+			
+//			List<ConfigListItem> listItems = listNode.getListItems();
+		if ((cListItems != null) && (cListItems.size() != 0)) {
 			Map listItemMap = new LinkedHashMap(); 
-			for(ConfigListItem listItem : listItems) {
+			for(ConfigListItem listItem : cListItems) {
 				Map listValue = new LinkedHashMap();
 				listValue.put("text", listItem.getValue());
 				listItemMap.put(listItem.getKey(), listValue);
@@ -71,12 +81,13 @@ public class UserFormFieldResponse implements Serializable{
 		}
 	}
 	
-	public UserFormFieldResponse(Long formTypeId, ConfigFormField cff, boolean stepRequired, boolean canModify) {
+	public UserFormFieldResponse(Long formTypeId, ConfigFormField cff, List<ConfigListItem> cListItems, boolean stepRequired, boolean canModify) {
 		this.title = cff.getFieldName();
 		this.dataIndex = cff.getDataIndex();
-		this.valueType = cff.getFieldType().equals("multilist")?"select":cff.getFieldType();
+		this.valueType = cff.getFieldType().equals(DataTypeEnum.multilist)?"select":cff.getFieldType().toString();
 		this.orderBy = cff.getOrderBy();
-		
+//		this.colProps.put("md", 12);
+//		this.colProps.put("xs", 24);
 		
 		if (stepRequired || cff.getRequired() || (cff.getPattern() != null)) {
 			this.formItemProps = new Rules(cff, stepRequired);
@@ -91,11 +102,13 @@ public class UserFormFieldResponse implements Serializable{
 		if (cff.getMultiple()) {
 			this.fieldProps.put("mode", "multiple");
 		}
-		if((cff.getConfigListNode() != null)) {
-			ConfigListNode listNode = cff.getConfigListNode();
-			List<ConfigListItem> listItems = listNode.getListItems();
+//		if((cff.getConfigListNode() != null)) {
+//			ConfigListNode listNode = cff.getConfigListNode();
+//			List<ConfigListItem> listItems = listNode.getListItems();
+		
+		if ((cListItems != null) && (cListItems.size() != 0)) {
 			Map listItemMap = new LinkedHashMap(); 
-			for(ConfigListItem listItem : listItems) {
+			for(ConfigListItem listItem : cListItems) {
 				Map listValue = new LinkedHashMap();
 				listValue.put("text", listItem.getValue());
 				listItemMap.put(listItem.getKey(), listValue);

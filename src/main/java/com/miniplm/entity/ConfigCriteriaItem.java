@@ -1,6 +1,7 @@
 package com.miniplm.entity;
 
 import java.util.LinkedList;
+import java.util.List;
 
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
@@ -56,12 +57,13 @@ public class ConfigCriteriaItem extends BaseEntity{
 	@Column(name = "OPERATOR", nullable = false, length = 45)
 	private OperatorEnum operator;
 	
+//	@Convert(converter = ConverterListJson.class)
 	@Column(name = "VALUE", nullable = true, length = 2000)
 	private String value;
 	
-    @Convert(converter = ConverterListJson.class)
-    @Column(name = "MULTI_VALUE", length = 2000)
-	private LinkedList<Object> multiValue;
+//    @Convert(converter = ConverterListJson.class)
+//    @Column(name = "MULTI_VALUE", length = 2000)
+//	private LinkedList<Object> multiValue;
 	
     @Enumerated(EnumType.STRING)
 	@Column(name = "LOGICAL", nullable = false, length = 45)
@@ -71,8 +73,8 @@ public class ConfigCriteriaItem extends BaseEntity{
 	@ManyToOne(cascade = CascadeType.MERGE, fetch = FetchType.LAZY)
 	private ConfigCriteriaNode criteriaNode;
 	
-    @Column(name = "ORDER_BY")
-    private int orderBy;
+//    @Column(name = "ORDER_BY")
+//    private int orderBy;
     
     @Override
     public int hashCode() {

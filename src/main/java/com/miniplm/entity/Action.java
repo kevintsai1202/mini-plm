@@ -77,9 +77,13 @@ public class Action extends BaseEntity{
 	@JoinColumn(name = "CONFIG_STEP_ID", referencedColumnName = "ID")
 	private ConfigStep configStep;
 	
-    @ManyToOne(fetch = FetchType.EAGER, cascade = CascadeType.MERGE)
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "USER_ID", referencedColumnName = "ACCOUNT_ID")
 	private ZAccount user;
+    
+    @ManyToOne(fetch = FetchType.EAGER)
+    @JoinColumn(name = "SIGNOFF_ID", referencedColumnName = "ACCOUNT_ID")
+	private ZAccount signoffUser;
     
     //A:approve N:Notify C:Comment
     @Column(name = "TYPE", length = 1)
@@ -101,7 +105,7 @@ public class Action extends BaseEntity{
     @Column(name = "FINISH_FLAG")
     private Boolean finishFlag = false;
     
-    @OneToOne(fetch = FetchType.EAGER, cascade = CascadeType.MERGE)
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "CREATOR_ID", referencedColumnName = "ACCOUNT_ID")
     private ZAccount creator;
 

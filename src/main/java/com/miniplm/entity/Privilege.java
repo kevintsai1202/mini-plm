@@ -60,7 +60,12 @@ public class Privilege extends BaseEntity {
 	
     @Convert(converter = ConverterListJson.class)
     @Column(name = "FIELDS", length = 2000)
-	private LinkedList<Object> fields = new LinkedList<>();	//edit field
+	private List<String> fields;	//edit field
+    
+    @Convert(converter = ConverterListJson.class)
+    @Column(name = "TABLES", length = 2000)
+	private List<Integer> tables;	//edit field
+    
     
 	@JsonIgnore
 	@ManyToMany(fetch = FetchType.EAGER, cascade = CascadeType.MERGE)

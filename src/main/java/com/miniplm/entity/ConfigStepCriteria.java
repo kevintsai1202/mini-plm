@@ -60,25 +60,25 @@ public class ConfigStepCriteria extends BaseEntity{
 	private Long cscId;
     
 	@JsonIgnore
-    @ManyToOne(cascade = CascadeType.MERGE , fetch = FetchType.EAGER)
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "STEP_ID", referencedColumnName = "ID")
     private ConfigStep cStep;
     
-    @ManyToOne(cascade = CascadeType.MERGE , fetch = FetchType.EAGER)
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "CRITERIA_NODE_ID", referencedColumnName = "ID")
     private ConfigCriteriaNode cCriteriaNode;
     
     @Convert(converter = ConverterListJson.class)
     @Column(name = "APPROVERS", length = 2000)
-    private LinkedList<Object> approvers;
+    private List<String> approvers;
     
     @Convert(converter = ConverterListJson.class)
     @Column(name = "NOTIFIERS", length = 2000)
-    private LinkedList<Object> notifiers;
+    private List<String> notifiers;
     
     @Convert(converter = ConverterListJson.class)
     @Column(name = "REQUIRED_FIELDS", length = 2000)
-    private LinkedList<Object> requiredFields;
+    private List<String> requiredFields;
        
     @Column(name = "ORDER_BY", nullable = false)
     private int orderBy;

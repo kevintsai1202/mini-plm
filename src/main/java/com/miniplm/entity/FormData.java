@@ -6,7 +6,9 @@ import java.util.List;
 
 import javax.persistence.Column;
 import javax.persistence.Convert;
+import javax.persistence.ElementCollection;
 import javax.persistence.Entity;
+import javax.persistence.EntityListeners;
 import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
@@ -16,29 +18,33 @@ import javax.persistence.ManyToOne;
 import javax.persistence.OneToOne;
 import javax.persistence.SequenceGenerator;
 import javax.persistence.Table;
+import javax.persistence.Transient;
 
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.hibernate.annotations.Proxy;
 import org.hibernate.annotations.SQLDelete;
 import org.hibernate.annotations.Where;
+import org.springframework.beans.BeanUtils;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.miniplm.convert.ConverterListJson;
+import com.miniplm.listener.FormDataListener;
 
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
 
-@Proxy(lazy = true)
+@Proxy(lazy = false)
 @Setter
 @Getter
 @NoArgsConstructor
+@EntityListeners(FormDataListener.class)
 @Entity
-@ToString(exclude = {"form"})
+@ToString(exclude = {"form", "oldData"})
 @Table(name = "MP_FORM_DATA")
 @SQLDelete(sql = "UPDATE MP_FORM_DATA SET enabled=0 WHERE id=?")
 @Where(clause = "enabled = true")
@@ -46,6 +52,9 @@ import lombok.ToString;
 @JsonInclude(value=Include.NON_NULL)
 public class FormData extends BaseEntity{
 	
+	public FormData(FormData oldData) {
+		BeanUtils.copyProperties(oldData, this);
+	}
 
 //    @GeneratedValue(strategy=GenerationType.IDENTITY)
 	@Id
@@ -75,6 +84,9 @@ public class FormData extends BaseEntity{
         return eb.isEquals();
     }
 	
+    @Transient
+    private FormData oldData;
+    
     @Column(name = "text01", length = 200)
     private String text01;
 
@@ -164,6 +176,66 @@ public class FormData extends BaseEntity{
     
     @Column(name = "text30", length = 200)
     private String text30;
+
+    @Column(name = "text31", length = 200)
+    private String text31;
+    
+    @Column(name = "text32", length = 200)
+    private String text32;
+    
+    @Column(name = "text33", length = 200)
+    private String text33;
+    
+    @Column(name = "text34", length = 200)
+    private String text34;
+    
+    @Column(name = "text35", length = 200)
+    private String text35;
+    
+    @Column(name = "text36", length = 200)
+    private String text36;
+    
+    @Column(name = "text37", length = 200)
+    private String text37;
+    
+    @Column(name = "text38", length = 200)
+    private String text38;
+    
+    @Column(name = "text39", length = 200)
+    private String text39;
+    
+    @Column(name = "text40", length = 200)
+    private String text40;
+    
+    @Column(name = "text41", length = 200)
+    private String text41;
+    
+    @Column(name = "text42", length = 200)
+    private String text42;
+    
+    @Column(name = "text43", length = 200)
+    private String text43;
+    
+    @Column(name = "text44", length = 200)
+    private String text44;
+    
+    @Column(name = "text45", length = 200)
+    private String text45;
+    
+    @Column(name = "text46", length = 200)
+    private String text46;
+    
+    @Column(name = "text47", length = 200)
+    private String text47;
+    
+    @Column(name = "text48", length = 200)
+    private String text48;
+    
+    @Column(name = "text49", length = 200)
+    private String text49;
+    
+    @Column(name = "text50", length = 200)
+    private String text50;
     
     @Column(name = "textarea01", length = 2000)
     private String textarea01;
@@ -435,245 +507,246 @@ public class FormData extends BaseEntity{
     @Column(name = "select30", length = 200)
     private String select30;
     
+//    @ElementCollection
     @Convert(converter = ConverterListJson.class)
     @Column(name = "multilist01", length = 2000)
-    private LinkedList<String> multilist01;
+    private List<String> multilist01;
     
     @Convert(converter = ConverterListJson.class)
     @Column(name = "multilist02", length = 2000)
-    private LinkedList<String> multilist02;
+    private List<String> multilist02;
     
     @Convert(converter = ConverterListJson.class)
     @Column(name = "multilist03", length = 2000)
-    private LinkedList<String> multilist03;
+    private List<String> multilist03;
     
     @Convert(converter = ConverterListJson.class)
     @Column(name = "multilist04", length = 2000)
-    private LinkedList<String> multilist04;
+    private List<String> multilist04;
     
     @Convert(converter = ConverterListJson.class)
     @Column(name = "multilist05", length = 2000)
-    private LinkedList<String> multilist05;
+    private List<String> multilist05;
     
     @Convert(converter = ConverterListJson.class)
     @Column(name = "multilist06", length = 2000)
-    private LinkedList<String> multilist06;
+    private List<String> multilist06;
     
     @Convert(converter = ConverterListJson.class)
     @Column(name = "multilist07", length = 2000)
-    private LinkedList<String> multilist07;
+    private List<String> multilist07;
     
     @Convert(converter = ConverterListJson.class)
     @Column(name = "multilist08", length = 2000)
-    private LinkedList<String> multilist08;
+    private List<String> multilist08;
     
     @Convert(converter = ConverterListJson.class)
     @Column(name = "multilist09", length = 2000)
-    private LinkedList<String> multilist09;
+    private List<String> multilist09;
     
     @Convert(converter = ConverterListJson.class)
     @Column(name = "multilist10", length = 2000)
-    private LinkedList<String> multilist10;
+    private List<String> multilist10;
     
     @Convert(converter = ConverterListJson.class)
     @Column(name = "multilist11", length = 2000)
-    private LinkedList<String> multilist11;
+    private List<String> multilist11;
     
     @Convert(converter = ConverterListJson.class)
     @Column(name = "multilist12", length = 2000)
-    private LinkedList<String> multilist12;
+    private List<String> multilist12;
     
     @Convert(converter = ConverterListJson.class)
     @Column(name = "multilist13", length = 2000)
-    private LinkedList<String> multilist13;
+    private List<String> multilist13;
     
     @Convert(converter = ConverterListJson.class)
     @Column(name = "multilist14", length = 2000)
-    private LinkedList<String> multilist14;
+    private List<String> multilist14;
     
     @Convert(converter = ConverterListJson.class)
     @Column(name = "multilist15", length = 2000)
-    private LinkedList<String> multilist15;
+    private List<String> multilist15;
     
     @Convert(converter = ConverterListJson.class)
     @Column(name = "multilist16", length = 2000)
-    private LinkedList<String> multilist16;
+    private List<String> multilist16;
     
     @Convert(converter = ConverterListJson.class)
     @Column(name = "multilist17", length = 2000)
-    private LinkedList<String> multilist17;
+    private List<String> multilist17;
     
     @Convert(converter = ConverterListJson.class)
     @Column(name = "multilist18", length = 2000)
-    private LinkedList<String> multilist18;
+    private List<String> multilist18;
     
     @Convert(converter = ConverterListJson.class)
     @Column(name = "multilist19", length = 2000)
-    private LinkedList<String> multilist19;
+    private List<String> multilist19;
     
     @Convert(converter = ConverterListJson.class)
     @Column(name = "multilist20", length = 2000)
-    private LinkedList<String> multilist20;
+    private List<String> multilist20;
     
     @Convert(converter = ConverterListJson.class)
     @Column(name = "multilist21", length = 2000)
-    private LinkedList<String> multilist21;
+    private List<String> multilist21;
     
     @Convert(converter = ConverterListJson.class)
     @Column(name = "multilist22", length = 2000)
-    private LinkedList<String> multilist22;
+    private List<String> multilist22;
     
     @Convert(converter = ConverterListJson.class)
     @Column(name = "multilist23", length = 2000)
-    private LinkedList<String> multilist23;
+    private List<String> multilist23;
     
     @Convert(converter = ConverterListJson.class)
     @Column(name = "multilist24", length = 2000)
-    private LinkedList<String> multilist24;
+    private List<String> multilist24;
     
     @Convert(converter = ConverterListJson.class)
     @Column(name = "multilist25", length = 2000)
-    private LinkedList<String> multilist25;
+    private List<String> multilist25;
     
     @Convert(converter = ConverterListJson.class)
     @Column(name = "multilist26", length = 2000)
-    private LinkedList<String> multilist26;
+    private List<String> multilist26;
     
     @Convert(converter = ConverterListJson.class)
     @Column(name = "multilist27", length = 2000)
-    private LinkedList<String> multilist27;
+    private List<String> multilist27;
     
     @Convert(converter = ConverterListJson.class)
     @Column(name = "multilist28", length = 2000)
-    private LinkedList<String> multilist28;
+    private List<String> multilist28;
     
     @Convert(converter = ConverterListJson.class)
     @Column(name = "multilist29", length = 2000)
-    private LinkedList<String> multilist29;
+    private List<String> multilist29;
     
     @Convert(converter = ConverterListJson.class)
     @Column(name = "multilist30", length = 2000)
-    private LinkedList<String> multilist30;
+    private List<String> multilist30;
     
     @Convert(converter = ConverterListJson.class)
     @Column(name = "checkbox01", length = 2000)
-    private LinkedList<String> checkbox01;
+    private List<String> checkbox01;
     
     @Convert(converter = ConverterListJson.class)
     @Column(name = "checkbox02", length = 2000)
-    private LinkedList<String> checkboxt02;
+    private List<String> checkboxt02;
     
     @Convert(converter = ConverterListJson.class)
     @Column(name = "checkbox03", length = 2000)
-    private LinkedList<String> checkbox03;
+    private List<String> checkbox03;
     
     @Convert(converter = ConverterListJson.class)
     @Column(name = "checkbox04", length = 2000)
-    private LinkedList<String> checkbox04;
+    private List<String> checkbox04;
     
     @Convert(converter = ConverterListJson.class)
     @Column(name = "checkbox05", length = 2000)
-    private LinkedList<String> checkbox05;
+    private List<String> checkbox05;
     
     @Convert(converter = ConverterListJson.class)
     @Column(name = "checkbox06", length = 2000)
-    private LinkedList<String> checkbox06;
+    private List<String> checkbox06;
     
     @Convert(converter = ConverterListJson.class)
     @Column(name = "checkbox07", length = 2000)
-    private LinkedList<String> checkbox07;
+    private List<String> checkbox07;
     
     @Convert(converter = ConverterListJson.class)
     @Column(name = "checkbox08", length = 2000)
-    private LinkedList<String> checkbox08;
+    private List<String> checkbox08;
     
     @Convert(converter = ConverterListJson.class)
     @Column(name = "checkbox09", length = 2000)
-    private LinkedList<String> checkbox09;
+    private List<String> checkbox09;
     
     @Convert(converter = ConverterListJson.class)
     @Column(name = "checkbox10", length = 2000)
-    private LinkedList<String> checkbox10;
+    private List<String> checkbox10;
     
     @Convert(converter = ConverterListJson.class)
     @Column(name = "checkbox11", length = 2000)
-    private LinkedList<String> checkbox11;
+    private List<String> checkbox11;
     
     @Convert(converter = ConverterListJson.class)
     @Column(name = "checkbox12", length = 2000)
-    private LinkedList<String> checkbox12;
+    private List<String> checkbox12;
     
     @Convert(converter = ConverterListJson.class)
     @Column(name = "checkbox13", length = 2000)
-    private LinkedList<String> checkbox13;
+    private List<String> checkbox13;
     
     @Convert(converter = ConverterListJson.class)
     @Column(name = "checkbox14", length = 2000)
-    private LinkedList<String> checkbox14;
+    private List<String> checkbox14;
     
     @Convert(converter = ConverterListJson.class)
     @Column(name = "checkbox15", length = 2000)
-    private LinkedList<String> checkbox15;
+    private List<String> checkbox15;
     
     @Convert(converter = ConverterListJson.class)
     @Column(name = "checkbox16", length = 2000)
-    private LinkedList<String> checkbox16;
+    private List<String> checkbox16;
     
     @Convert(converter = ConverterListJson.class)
     @Column(name = "checkbox17", length = 2000)
-    private LinkedList<String> checkbox17;
+    private List<String> checkbox17;
     
     @Convert(converter = ConverterListJson.class)
     @Column(name = "checkbox18", length = 2000)
-    private LinkedList<String> checkbox18;
+    private List<String> checkbox18;
     
     @Convert(converter = ConverterListJson.class)
     @Column(name = "checkbox19", length = 2000)
-    private LinkedList<String> checkbox19;
+    private List<String> checkbox19;
     
     @Convert(converter = ConverterListJson.class)
     @Column(name = "checkbox20", length = 2000)
-    private LinkedList<String> checkbox20;
+    private List<String> checkbox20;
 
     @Convert(converter = ConverterListJson.class)
     @Column(name = "checkbox21", length = 2000)
-    private LinkedList<String> checkbox21;
+    private List<String> checkbox21;
     
     @Convert(converter = ConverterListJson.class)
     @Column(name = "checkbox22", length = 2000)
-    private LinkedList<String> checkbox22;
+    private List<String> checkbox22;
     
     @Convert(converter = ConverterListJson.class)
     @Column(name = "checkbox23", length = 2000)
-    private LinkedList<String> checkbox23;
+    private List<String> checkbox23;
     
     @Convert(converter = ConverterListJson.class)
     @Column(name = "checkbox24", length = 2000)
-    private LinkedList<String> checkbox24;
+    private List<String> checkbox24;
     
     @Convert(converter = ConverterListJson.class)
     @Column(name = "checkbox25", length = 2000)
-    private LinkedList<String> checkbox25;
+    private List<String> checkbox25;
     
     @Convert(converter = ConverterListJson.class)
     @Column(name = "checkbox26", length = 2000)
-    private LinkedList<String> checkbox26;
+    private List<String> checkbox26;
     
     @Convert(converter = ConverterListJson.class)
     @Column(name = "checkbox27", length = 2000)
-    private LinkedList<String> checkbox27;
+    private List<String> checkbox27;
     
     @Convert(converter = ConverterListJson.class)
     @Column(name = "checkbox28", length = 2000)
-    private LinkedList<String> checkbox28;
+    private List<String> checkbox28;
     
     @Convert(converter = ConverterListJson.class)
     @Column(name = "checkbox29", length = 2000)
-    private LinkedList<String> checkbox29;
+    private List<String> checkbox29;
     
     @Convert(converter = ConverterListJson.class)
     @Column(name = "checkbox30", length = 2000)
-    private LinkedList<String> checkbox30;
+    private List<String> checkbox30;
     
     @Column(name = "radio01", length = 200)
     private String radio01;

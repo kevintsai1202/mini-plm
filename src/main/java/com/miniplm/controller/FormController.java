@@ -1,6 +1,8 @@
 package com.miniplm.controller;
 
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 import javax.annotation.Resource;
 
@@ -20,11 +22,14 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.miniplm.entity.ConfigCriteriaItem;
 import com.miniplm.entity.ConfigFormNumber;
 import com.miniplm.entity.ConfigFormType;
 import com.miniplm.entity.ConfigStep;
+import com.miniplm.entity.ConfigTableHeader;
 import com.miniplm.entity.Form;
 import com.miniplm.entity.FormData;
+import com.miniplm.entity.TableData;
 import com.miniplm.repository.ActionRepository;
 import com.miniplm.repository.ConfigStepRepository;
 import com.miniplm.repository.FormRepository;
@@ -41,6 +46,8 @@ import com.miniplm.service.ActionService;
 import com.miniplm.service.ConfigFormTypeService;
 import com.miniplm.service.FormDetailsService;
 import com.miniplm.service.FormStatusService;
+import com.miniplm.service.QueryService;
+import com.miniplm.service.TableService;
 
 import io.swagger.v3.oas.annotations.Operation;
 import lombok.extern.slf4j.Slf4j;
@@ -61,6 +68,9 @@ public class FormController {
 	
 	@Autowired
 	private FormDetailsService formDetailsService;
+	
+	@Autowired
+	private QueryService queryService;
 	
 	@Autowired
 	private FormStatusService formStatusService;
@@ -93,6 +103,27 @@ public class FormController {
 		       description = "依FormType返回所有表單清單")
 	public ResponseEntity<TableResultResponse<Page<FormResponse>>> listByFormType(@PathVariable("formtypeid") Long formTypeId, Pageable pageable) {
 		return ResponseEntity.ok(new TableResultResponse(formDetailsService.listByFormTypeId(formTypeId,pageable)));
+	}
+	
+	@GetMapping("/quicksearch/{keyword}")
+	@Operation(summary = "取得Form列表",
+		       description = "依Form返回所有表單清單")
+	public ResponseEntity<TableResultResponse<Page<FormResponse>>> quickSearch(@PathVariable("keyword") String keyword, Pageable pageable) {
+		return ResponseEntity.ok(new TableResultResponse(formDetailsService.quickSearch(keyword, pageable)));
+	}
+	
+	@PostMapping("/advancesearch/{formTypeId}")
+	@Operation(summary = "依 Criteria items 搜尋返回清單",
+		       description = "依 Criteria items 搜尋返回清單")
+	public ResponseEntity<TableResultResponse<List<FormResponse>>> advanceSearch(@PathVariable("formTypeId") Long formTypeId, @RequestBody List<ConfigCriteriaItem> criteriaItems) {
+		
+		List<Form> forms = queryService.queryByCriteria(formTypeId, criteriaItems);
+		
+		List<FormResponse> formResponses = forms.stream()
+                .map(FormResponse::new)
+                .collect(Collectors.toList());
+		
+		return ResponseEntity.ok(new TableResultResponse(formResponses));
 	}
 	
 	@GetMapping("/{id}")
@@ -173,6 +204,13 @@ public class FormController {
 		return ResponseEntity.ok(configFormTypeService.getVisibleFields(formId));
 	}
 	
+	@GetMapping("/formtype/{formtypeid}/tables")
+	public ResponseEntity<Set<ConfigTableHeader>> getFormTables(@PathVariable("formtypeid") Long formtypeid) {
+//		ConfigFormType formType = configFormTypeRepository.getReferenceById(id);
+//		return ResponseEntity.ok(configFormTypeService.getFormTypeVisibleFields(id));
+		return ResponseEntity.ok(configFormTypeService.getFormTypeAllTables(formtypeid));
+	}
+	
 //	@GetMapping("/formnumber/{formNumber}")
 //	@Operation(summary = "依Form Number取得Form",
 //		       description = "透過Form Number查詢Form的資料")
@@ -188,7 +226,7 @@ public class FormController {
 		return ResponseEntity.ok(formRepository.findByFormNumber(formNumber));
 	}
 	
-	@PatchMapping("/formnumber/{formNumber}")
+	@PutMapping("/formnumber/{formNumber}")
 	@Operation(summary = "依Form Number修改Form Data資料",
 		       description = "透過Form Number修改Form Data的資料")
 	public ResponseEntity<FormData> modifyFormByFormNumber(@PathVariable("formNumber") String formNumber, @RequestBody FormDataRequest formDataReq ) {

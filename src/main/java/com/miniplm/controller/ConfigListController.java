@@ -7,9 +7,11 @@ import java.util.Optional;
 import javax.annotation.Resource;
 import javax.persistence.EntityNotFoundException;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -25,6 +27,7 @@ import com.miniplm.entity.ConfigListNode;
 import com.miniplm.repository.ConfigListItemRepository;
 import com.miniplm.repository.ConfigListNodeRepository;
 import com.miniplm.response.TableResultResponse;
+import com.miniplm.service.QueryService;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -38,6 +41,8 @@ public class ConfigListController {
 	private ConfigListNodeRepository listNodeRepository;
 	@Resource
 	private ConfigListItemRepository listItemRepository;
+	@Autowired
+	private QueryService queryService;
 	
 	@GetMapping()
 	@Operation(summary = "取得下拉選單列表",
@@ -90,6 +95,8 @@ public class ConfigListController {
 		ConfigListNode _listNode = listNodeRepository.getReferenceById(id);
 		_listNode.setDescription(listNode.getDescription());
 		_listNode.setName(listNode.getName());
+		_listNode.setListType(listNode.getListType());
+		_listNode.setSql(listNode.getSql());
 //		_listNode.setEnabled(listNode.getEnabled());
 //		for (int order = 0; order < listItems.size() ; order++) {
 //			ConfigListItem newListItem = listItems.get(order);
@@ -101,14 +108,40 @@ public class ConfigListController {
 		return ResponseEntity.ok(listNodeRepository.save(_listNode));
 	}
 	
+	@DeleteMapping(value = "/listItems/{cliId}")
+	@Operation(summary = "刪除list item",
+               description = "刪除list item")
+	public ResponseEntity<String> delListItems(@PathVariable("cliId") Long cliId) {
+		listItemRepository.deleteById(cliId);
+//		List listItems = listNode.getListItems();
+//		List<ConfigListItem> updatedListItems = listItemRepository.saveAll(listItems);
+		return ResponseEntity.ok("Delete");
+	}
+	
+	
 	@GetMapping(value = "/{id}/listItems")
 	@Operation(summary = "取得List id的所有list items",
                description = "取得List id的所有list items")
-	public ResponseEntity<TableResultResponse> updateListItems(@PathVariable("id") Long id) {
+	public ResponseEntity<TableResultResponse> getListItems(@PathVariable("id") Long id) {
 		ConfigListNode listNode = listNodeRepository.getReferenceById(id);
 //		List listItems = listNode.getListItems();
 //		List<ConfigListItem> updatedListItems = listItemRepository.saveAll(listItems);
 		return ResponseEntity.ok(new TableResultResponse(listNode.getListItems()));
+	}
+	
+	@GetMapping(value = "/{id}/sql")
+	@Operation(summary = "取得sql返回的List",
+               description = "取得sql返回的List")
+	public ResponseEntity<TableResultResponse> getListBySql(@PathVariable("id") Long id) {
+		ConfigListNode listNode = listNodeRepository.getReferenceById(id);
+		String sql = listNode.getSql();
+		
+		if (sql != null) {
+			return ResponseEntity.ok(new TableResultResponse(queryService.getListItemsWithNativeQuery(sql)));
+		}
+		else return ResponseEntity.ok(new TableResultResponse("Sql is null"));
+//		List listItems = listNode.getListItems();
+//		List<ConfigListItem> updatedListItems = listItemRepository.saveAll(listItems);
 	}
 	
 	@PutMapping(value = "/{nodeId}/listItems/{listItemId}")
