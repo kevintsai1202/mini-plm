@@ -28,7 +28,7 @@ public class ConfigFormFieldEnum {
 		if((fieldListItems != null && fieldListItems.size() > 0)) {
 //			ConfigListNode listNode = cff.getConfigListNode();
 //			List<ConfigListItem> fieldListItems = listNode.getListItems();
-			listItemsEnum = fieldListItems.stream().collect(Collectors.toMap(ConfigListItem::getKey, ConfigListItem::getValue));
+			listItemsEnum = fieldListItems.stream().collect(Collectors.toMap(ConfigListItem::getKey, ConfigListItem::getValue ));
 		}
 //		enumData.put(cff.getCffId(), new HashMap<String, String>(){{  
 //			put("text", cff.getFieldName());

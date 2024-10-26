@@ -28,6 +28,8 @@ import org.hibernate.annotations.Where;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.miniplm.convert.ConverterListJson;
 
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -36,7 +38,9 @@ import lombok.ToString;
 @Entity
 @Setter
 @Getter
+@Builder
 @NoArgsConstructor
+@AllArgsConstructor
 @ToString(exclude = {"roles"})
 @Table(name = "MP_PRIVILEGE")
 @SQLDelete(sql = "UPDATE MP_PRIVILEGE SET enabled= 0 WHERE id=?")

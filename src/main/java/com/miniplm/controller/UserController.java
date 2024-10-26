@@ -60,8 +60,10 @@ public class UserController {
     }
 	
 	@GetMapping("/all")
-    public ResponseEntity<TableResultResponse<List<ZAccount>>> allUser(@RequestParam(required = false) String username, @RequestParam(required = false) String email) {
-		return ResponseEntity.ok(new TableResultResponse(userService.srearchUser(username, email)));
+    public ResponseEntity<List<ZAccount>> allUser() {
+		List<ZAccount> users = userService.getAllUsers();
+		log.info("user size:{}", users.size());
+		return ResponseEntity.ok(users);
     }
 	
 	@GetMapping(value = "/{id}")

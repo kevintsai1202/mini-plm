@@ -58,19 +58,8 @@ public class UserService implements UserDetailsService{
         return userRepository.save(user);
     }
 
-	public List<ZAccount> srearchUser(String username, String email) {
-    	log.info("Username: {} email: {}", username, email);
-    	if (username != null && email != null) {
-    		return userRepository.findByUsernameContainingIgnoreCaseAndEmailContainingIgnoreCase(username, email);
-    	}
-    	else if (username != null && email == null) {
-    		return userRepository.findByUsernameContainingIgnoreCase(username);
-    	}
-    	else if (username == null && email != null) {
-    		return userRepository.findByEmailContainingIgnoreCase(email);
-    	}else {
+	public List<ZAccount> getAllUsers() {
     		return userRepository.findAll();
-    	}	
     }
 	
     public Page<ZAccount> srearchUser(String username, String email, Pageable pageable) {

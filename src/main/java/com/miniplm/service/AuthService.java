@@ -57,9 +57,11 @@ public class AuthService {
 		ZAccount zuser = null;
 
 		if ("ldap".equalsIgnoreCase(authenticateMethod)) {
+			log.info("login by ldap");
 			try {
 				ldapUser = ldapService.loginByLdap(request);
 				log.info("ldapUser: {}", ldapUser);
+				zuser = (ZAccount) userService.loadUserByUsername(ldapUser.getLoginName());
 			}catch(AuthenticationException e) {
 				zuser = (ZAccount) userService.loadUserByUsername(request.getUsername());
 				requestMd5Pwd = passwordEncoder.encode(request.getPassword());
@@ -67,13 +69,17 @@ public class AuthService {
 					throw new AuthenticationException("密碼錯誤");
 				}
 			}
-			zuser = (ZAccount) userService.loadUserByUsername(ldapUser.getLoginName());
 		} else { // db
+			log.info("login by db");
 			zuser = (ZAccount) userService.loadUserByUsername(request.getUsername());
+			log.info("account:{}", zuser);
 			requestMd5Pwd = passwordEncoder.encode(request.getPassword());
+			log.info("MD5PWD:{}", requestMd5Pwd);
 			if (!zuser.getPassword().equals(requestMd5Pwd)) {
+				log.error("密碼錯誤");
 				throw new AuthenticationException("密碼錯誤");
 			}
+			log.info("login success!");
 		}
 		if ("ldap".equalsIgnoreCase(authenticateMethod) && (zuser.getEmail() == null)) {
 			log.info("Sync email: {}", ldapUser.getMail());

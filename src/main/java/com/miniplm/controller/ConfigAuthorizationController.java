@@ -1,10 +1,14 @@
 package com.miniplm.controller;
 
+import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 
+import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -17,21 +21,27 @@ import org.springframework.web.bind.annotation.RestController;
 import com.miniplm.convert.PermissionConverter;
 import com.miniplm.convert.PrivilegeConverter;
 import com.miniplm.convert.RoleConverter;
+import com.miniplm.entity.ConfigCriteriaItem;
+import com.miniplm.entity.ConfigCriteriaNode;
+import com.miniplm.entity.ConfigFormType;
 import com.miniplm.entity.Menu;
 import com.miniplm.entity.Permission;
 import com.miniplm.entity.Privilege;
+import com.miniplm.entity.PrivilegeEnum;
 import com.miniplm.entity.Role;
 import com.miniplm.entity.UriEntity;
 import com.miniplm.entity.ZAccount;
 import com.miniplm.repository.PermissionRepository;
 import com.miniplm.repository.PrivilegeRepository;
 import com.miniplm.repository.RoleRepository;
+import com.miniplm.request.ConfigCriteriaNodeRequest;
 import com.miniplm.request.PermissionRequest;
 import com.miniplm.request.PrivilegeRequest;
 import com.miniplm.request.RoleRequest;
 import com.miniplm.response.TableResultResponse;
 import com.miniplm.service.AuthorizationService;
 
+import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 
 @Tag(name = "授權" , description = "維護授權的API")
@@ -119,6 +129,28 @@ public class ConfigAuthorizationController {
 	public ResponseEntity<Privilege> createPrivilege(@RequestBody PrivilegeRequest privilegeRequest) {
 		Privilege privilege = PrivilegeConverter.INSTANCT.requestToEntity(privilegeRequest);
 		return ResponseEntity.ok(authorizationService.createPrivilege(privilege));
+	}
+	
+	@PostMapping("/privileges/{sourceId}/saveas")
+	@Operation(summary = "複製Privilege",
+               description = "複製Privilege")
+	public ResponseEntity<Privilege> saveAsPrivilege(@PathVariable Long sourceId, @RequestBody @Validated PrivilegeRequest privilegeRequest){
+//		List<ConfigCriteriaItem> targetCriteriaItems = new ArrayList<>();
+		Privilege source = privilegeRepository.getReferenceById(sourceId);
+//		List<ConfigCriteriaItem> sourceCriteriaItems = source.getCriteriaItems();
+		
+//		ConfigFormType formType = configFormTypeRepository.getReferenceById(privilegeRequest. .getCfId());
+		
+		Privilege privilege = Privilege.builder()
+				.privilegeName(privilegeRequest.getPrivilegeName())
+				.fields(privilegeRequest.getFields().stream().collect(Collectors.toList()))
+				.objId(privilegeRequest.getObjId())
+				.privilege(PrivilegeEnum.valueOf(privilegeRequest.getPrivilege()))
+				.build();
+		
+		Privilege savedPrivilege = privilegeRepository.save(privilege);
+		
+		return ResponseEntity.ok(savedPrivilege);
 	}
 	
 	@PutMapping("/roles/{rId}/{newRoleName}")

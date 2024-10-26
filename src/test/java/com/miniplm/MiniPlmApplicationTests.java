@@ -35,41 +35,41 @@ import com.miniplm.service.QueryService;
 @SpringBootTest
 class MiniPlmApplicationTests {
 	
-	@Autowired
-	ConfigCriteriaNodeRepository configCriteriaNodeRepository;
-	
-	@Autowired
-	ConfigCriteriaItemRepository configCriteriaItemRepository;
-	
-	@Autowired
-	ConfigFormFieldService configFormFieldService;
-	
-	@Autowired
-	QueryService queryService;
-	
-	@Autowired
-	FormDetailsService formDetailsService;
-	
-	@Autowired
-	ConfigStepRepository configStepRepository;
-	
-	@Autowired
-	ConfigStepCriteriaRepository configStepCriteriaRepository;
-	
-	@Autowired
-	FormRepository formRepository;
-	
-	@Autowired
-	ActionService actionService;
-	
-	@Autowired
-	AuthorizationService authorizationService;
-	
-	@Test
-	public void test1() {
-		List<ConfigListItem> lists= queryService.getListItemsWithNativeQuery("select key, value from MP_CONFIG_LISTITEM WHERE list_node_id = 5424");
-		System.out.println(lists);
-	}
+//	@Autowired
+//	ConfigCriteriaNodeRepository configCriteriaNodeRepository;
+//	
+//	@Autowired
+//	ConfigCriteriaItemRepository configCriteriaItemRepository;
+//	
+//	@Autowired
+//	ConfigFormFieldService configFormFieldService;
+//	
+//	@Autowired
+//	QueryService queryService;
+//	
+//	@Autowired
+//	FormDetailsService formDetailsService;
+//	
+//	@Autowired
+//	ConfigStepRepository configStepRepository;
+//	
+//	@Autowired
+//	ConfigStepCriteriaRepository configStepCriteriaRepository;
+//	
+//	@Autowired
+//	FormRepository formRepository;
+//	
+//	@Autowired
+//	ActionService actionService;
+//	
+//	@Autowired
+//	AuthorizationService authorizationService;
+//	
+//	@Test
+//	public void test1() {
+//		List<ConfigListItem> lists= queryService.getListItemsWithNativeQuery("select key, value from MP_CONFIG_LISTITEM WHERE list_node_id = 5424");
+//		System.out.println(lists);
+//	}
 //	
 //	@Test
 //	@Transactional

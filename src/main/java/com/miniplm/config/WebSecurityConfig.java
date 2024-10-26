@@ -45,21 +45,11 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class WebSecurityConfig {
 
-//	@Autowired
-//	private final UserService userService;
-//	@Autowired
 	private final MpUnauthorizedHandler unauthorizedHandler;
-//	@Autowired
 	private final MpAccessDeniedHandler accessDeniedHandler;
-//	@Autowired
 	private final AuthorizationService authorizationService;
-//	@Autowired
 	private final LogoutHandler logoutHandler;
-//	@Autowired
-//    private final DataSource dataSource; // 数据源
-    
     private final JwtAuthenticationFilter jwtAuthenticationTokenFilter;
-	
 	
 //	@Bean
 //	public RememberMeServices persistentTokenBasedRememberMeServices() {
@@ -82,11 +72,6 @@ public class WebSecurityConfig {
 //	@Bean
 //	public PasswordEncoder testPasswordEncoder() {
 //		return new BCryptPasswordEncoder();
-//	}
-
-//	@Bean
-//	public JwtAuthenticationFilter jwtAuthenticationTokenFilter() {
-//		return new JwtAuthenticationFilter();
 //	}
 
 	@Bean
@@ -133,63 +118,29 @@ public class WebSecurityConfig {
 						.antMatchers("/assets/**").permitAll()
 						.antMatchers("/favicon.ico").permitAll()
 						.antMatchers("/login").permitAll()
-//						.antMatchers("/user/readform/**").permitAll()
-//						.antMatchers("/user/createform/**").permitAll()
 						.antMatchers("/index.html").permitAll()
 						.antMatchers("/api/v1/config/systemsetting/routes").permitAll()					
 						.antMatchers(HttpMethod.POST, "/api/v1/auth/**").permitAll()
 						.antMatchers(HttpMethod.POST, "/api/v1/users/**").authenticated()
 						.antMatchers(HttpMethod.POST, "/api/v1/seatch/**").permitAll()
 						.antMatchers(HttpMethod.PUT, "/api/v1/forms/formnumber/**").permitAll()	//外部修改呼叫
-//						.antMatchers(HttpMethod.POST, "/api/v1/admin/config/authorization/**").hasAnyRole("ADMIN")
-//								.antMatchers("/api/v1/admin/**").permitAll()
-//						.antMatchers("/api/v1/forms/**").permitAll()
-//						.antMatchers("/api/v1/actions/**").authenticated()
-//						.antMatchers("/api/v1/admin/config/authorization/me/urlpatterns").authenticated()
-//						.antMatchers("/api/v1/users/me").authenticated()
 						.antMatchers("/api/v1/files/**").permitAll()
-//						.antMatchers("/api/v1/config/**").authenticated()	//設定資料
-//						.antMatchers("/api/v1/admin/**").hasAnyRole("ADMIN")
-//						.antMatchers("/api/v1/admin/config/lists/**").permitAll()
-//						.antMatchers("/api/v1/admin/config/authorization/**").permitAll()
-						
-//								.authenticated()
-						.anyRequest().access((authenticationSupplier, requestAuthorizationContext) -> {
+						.antMatchers("/api/v1/config/authorization/me/**").permitAll()
+						.antMatchers("/api/v1/config/authorization/me/**")
+						.access((authenticationSupplier, requestAuthorizationContext) -> {
 //									// 當前用戶角色
 							Collection<? extends GrantedAuthority> authorities = authenticationSupplier.get()
 									.getAuthorities();
-//							log.info("authorities: {}", authorities);
-//							System.out.println("authorities:" + authorities);
 							Object principal = authenticationSupplier.get().getPrincipal();
 							Set<Permission> permissions = new HashSet<>();
 							if (principal instanceof UserDetails) {
 								UserDetails user = (UserDetails) principal;
 								permissions = authorizationService.getUserPermissions(user.getUsername());
 							}
-//							Set<String> urlPatterns = authorizationService.getUserUrlPatterns(username);
-							
-							
-							// 攜帶的參數
-//							Map<String, String> variables = requestAuthorizationContext.getVariables();
-//							System.out.println("variables:" + variables);
-							// request可取得請求路徑
-//							HttpServletRequest request = requestAuthorizationContext.getRequest();
 							String requestUri = requestAuthorizationContext.getRequest().getRequestURI();
 							String method = requestAuthorizationContext.getRequest().getMethod();
-//							log.info("method: {}",method);
-//							System.out.println("method:"+method);
-//							log.info("request uri: {}" , requestUri);
-//							System.out.println("request uri:" + requestUri);
-							
 							AntPathMatcher antMatcher = new AntPathMatcher();
 							for(Permission permission : permissions) {
-//								log.info("permission PermissionName: {}",permission.getPermissionName());
-//								System.out.println("permission PermissionName:"+permission.getPermissionName());
-//								log.info("permission Method: {}",permission.getMethod());
-//								System.out.println("permission Method:"+permission.getMethod());
-//								log.info("permission UriPattern: {}",permission.getUriPattern());
-//								System.out.println("permission UriPattern:"+permission.getUriPattern());
-								
 								if ((method.equals(permission.getMethod())) && (antMatcher.match(permission.getUriPattern(), requestUri))) 
 									return new AuthorizationDecision(true);
 							}
@@ -206,15 +157,7 @@ public class WebSecurityConfig {
                           .addLogoutHandler(logoutHandler)
                           .logoutSuccessHandler((request, response, authentication) -> SecurityContextHolder.clearContext())
 //                          .deleteCookies("remember-me")
-						)
-				;
-		// 禁用缓存
-		// httpSecurity.authenticationProvider(new MpAuthenticationProvider());
-		// httpSecurity.headers().cacheControl();
-		// httpSecurity.addFilterBefore(jwtAuthenticationTokenFilter(),
-		// UsernamePasswordAuthenticationFilter.class);
-//		 httpSecurity.exceptionHandling().authenticationEntryPoint(unauthorizedHandler);
-//		 httpSecurity.exceptionHandling().accessDeniedHandler(accessDeniedHandler);
+						);
 		return httpSecurity.build();
 	}
 }

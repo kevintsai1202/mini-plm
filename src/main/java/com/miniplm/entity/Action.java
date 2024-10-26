@@ -85,6 +85,9 @@ public class Action extends BaseEntity{
     @JoinColumn(name = "SIGNOFF_ID", referencedColumnName = "ACCOUNT_ID")
 	private ZAccount signoffUser;
     
+    @Column(name = "VARIABLE")
+    private String variable;
+    
     //A:approve N:Notify C:Comment
     @Column(name = "TYPE", length = 1)
     private String type;

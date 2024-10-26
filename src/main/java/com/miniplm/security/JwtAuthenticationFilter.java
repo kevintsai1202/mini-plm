@@ -39,17 +39,8 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 	private final static String AUTH_HEADER_TYPE = "Bearer";
 	@Value("${jwt.tokenValid}")
 	private boolean tokenValid;
-
-//	@Autowired
-//	private final JwtService jwtService;
-	
-//	@Autowired
 	private final JwtUtils jwtUtils;
-
-//	@Autowired
 	private final UserService userService;
-
-//	@Autowired
 	private final TokenRepository tokenRepository;
 
 	@Override
@@ -57,22 +48,17 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 			throws ServletException, IOException {
 		String authHeader = request.getHeader(AUTH_HEADER);
 		String jwt = "";
-//		log.info("Run JwtAuthenticationFilter");
-//		log.info("URI: {}", request.getRequestURI());
 		if (request.getRequestURI().equals("/api/v1/auth") || request.getRequestURI().equals("/")) {
 			// 登入時不用檢查Token
 			filterChain.doFilter(request, response);
 			return;
 		}
-//		log.info("authHeader: {}", authHeader);
 		if (authHeader == null || !authHeader.startsWith(AUTH_HEADER_TYPE)) {
 			filterChain.doFilter(request, response);
 			return;
 		}
 
 		jwt = authHeader.substring(7);
-//		log.info("authToken: {}" , jwt);
-	
 		String userName = "";
 		try {
 			userName = jwtUtils.extractUsername(jwt);
@@ -81,11 +67,8 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 			filterChain.doFilter(request, response);
 			return;
 		}
-//		log.info("getContext: {}", SecurityContextHolder.getContext().getAuthentication());
 		if (userName != null && SecurityContextHolder.getContext().getAuthentication() == null) {
-
 			UserDetails user = userService.loadUserByUsername(userName);
-			
 			boolean isTokenValid = true;
 			if (tokenValid) {
 				isTokenValid = tokenRepository.findByToken(jwt).map(t -> !t.isExpired() && !t.isRevoked())

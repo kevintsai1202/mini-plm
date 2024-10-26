@@ -28,6 +28,7 @@ import org.hibernate.annotations.FetchMode;
 import org.hibernate.annotations.GenericGenerator;
 import org.hibernate.annotations.Parameter;
 import org.hibernate.annotations.Proxy;
+import org.hibernate.annotations.Where;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -44,8 +45,9 @@ import lombok.ToString;
 @Getter
 @NoArgsConstructor
 @Entity
-@ToString(exclude = {"tokens", "historys"})
+@ToString(exclude = {"tokens"})
 @Table(name = "Z_ACCOUNT")
+@Where(clause = "DELETE_FLAG = 'N'")
 public class ZAccount implements UserDetails {
 @Id
   @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "N20_SEQ_ACCOUNT")

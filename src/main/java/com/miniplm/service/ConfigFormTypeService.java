@@ -277,13 +277,13 @@ public class ConfigFormTypeService {
 				}
 			}
 			if (field.getGroups() == null) {
-				allFields.add(new UserFormFieldResponse(field, cListItems, false));
-//					allFields.add(new UserFormFieldResponse(formTypeId, field, false, canModify));
+//				allFields.add(new UserFormFieldResponse(field, cListItems, false));
+				allFields.add(new UserFormFieldResponse(formTypeId, field, cListItems, false, canModify));
 			} else {
 				log.info("Field's Group DataIndex: {}", field.getGroups());
 				UserFormFieldResponse groupField = groups.get(field.getGroups());
-				groupField.getColumns().add(new UserFormFieldResponse(field, cListItems, false));
-//					groupField.getColumns().add(new UserFormFieldResponse(formTypeId, field, false, canModify));
+//				groupField.getColumns().add(new UserFormFieldResponse(field, cListItems, false));
+				groupField.getColumns().add(new UserFormFieldResponse(formTypeId, field,cListItems, false, canModify));
 				if (!allFields.contains(groupField)) {
 					allFields.add(groupField);
 				}

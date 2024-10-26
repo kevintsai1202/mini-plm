@@ -422,7 +422,8 @@ public class ActionService {
 			actionResponse.setComments(action.getComments());
 			actionResponse.setSignoffType(action.getSignoffType());
 			actionResponse.setType(action.getType());
-			actionResponse.setUsername(action.getUser().getUsername());
+			if (action.getUser() != null)
+				actionResponse.setUsername(action.getUser().getUsername());
 			actionResponse.setFormNumber(action.getForm().getFormNumber());
 			actionResponse.setFormTypeName(action.getForm().getConfigFormType().getName());
 			actionResponse.setFormDescription(action.getForm().getDescription());
@@ -543,6 +544,8 @@ public class ActionService {
 				allApproverIds.forEach((userId) -> {
 //					Long lUserId = Long.valueOf(userId.toString());
 					ZAccount creator = new ZAccount();
+					Action action = new Action();
+					ZAccount user = null;
 					Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 					if (authentication == null || !authentication.isAuthenticated()) {
 						throw new InternalAuthenticationServiceException("Can't get current user");
@@ -552,12 +555,18 @@ public class ActionService {
 //					String userName = (String) authentication.getPrincipal();
 //					Optional<ZAccount> oCreator = userRepository.findByUsername(userName);
 //					creator = oCreator.get();
-					creator = (ZAccount) authentication.getPrincipal();
-
-					ZAccount user = userRepository.getReferenceById(userId.toString());
-					log.info("Approve User: {}" , user);
+					creator = (ZAccount) authentication.getPrincipal();//action creator
+					if (!userId.startsWith("$")) {
+						user = userRepository.getReferenceById(userId.toString());
+						log.info("Approve User: {}" , user);
+					}else {
+						if (userId.equals("$Originator"))
+							user = creator;
+//							action.setUser(creator);
+						else
+							action.setVariable(userId);
+					}
 //					System.out.println("Approve User:" + user);
-					Action action = new Action();
 					action.setConfigStep(nextStep);
 					action.setForm(form);
 					action.setType("A");
@@ -572,6 +581,8 @@ public class ActionService {
 				notifyUserIds.forEach((userId) -> {
 //					Long lUserId = Long.valueOf(userId.toString());
 					ZAccount creator = new ZAccount();
+					Action action = new Action();
+					ZAccount user = null;
 					Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 					if (authentication == null || !authentication.isAuthenticated()) {
 						throw new InternalAuthenticationServiceException("Can't get current user");
@@ -581,13 +592,19 @@ public class ActionService {
 //					String userName = (String) authentication.getPrincipal();
 //					Optional<ZAccount> oCreator = userRepository.findByUsername(userName);
 //					creator = oCreator.get();
-					creator = (ZAccount) authentication.getPrincipal();
+					creator = (ZAccount) authentication.getPrincipal(); //action creator
 
-					ZAccount user = userRepository.getReferenceById(userId.toString());
-					
-					log.info("Notify User: {}", user);
+					if (!userId.startsWith("$")) {
+						user = userRepository.getReferenceById(userId.toString());
+						log.info("Notify User: {}", user);
+					}else {
+						if (userId.equals("$Originator"))
+							user = form.getCreator();
+						else
+							action.setVariable(userId);
+					}
+//					user = userRepository.getReferenceById(userId.toString());
 //					System.out.println("Notify User:" + user);
-					Action action = new Action();
 					action.setConfigStep(nextStep);
 					action.setForm(form);
 					action.setType("N");
